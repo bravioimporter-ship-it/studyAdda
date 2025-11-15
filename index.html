@@ -4,79 +4,58 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>StudyVault — Secure Study Chat</title>
-<meta name="description" content="Private encrypted study chat embedded in PDF.">
 <style>
   :root{
-    --bg:#0f1724;
-    --card:#0b1220;
-    --accent:#6ee7b7;
-    --muted:#94a3b8;
-    --glass: rgba(255,255,255,0.03);
-    --glass-2: rgba(255,255,255,0.02);
+    --bg:#0f1724; --card:#0b1220; --accent:#6ee7b7; --muted:#94a3b8;
   }
-  html,body{height:100%;margin:0;background:linear-gradient(180deg,#071029 0%, #091025 100%);color:#e6eef8;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#071029,#091025);color:#e6eef8;font-family:Inter,system-ui,Arial;}
   .wrap{display:flex;flex-direction:column;height:100vh;gap:8px;padding:12px;}
-  /* Lock overlay */
   .lock-overlay{position:fixed;inset:0;background:linear-gradient(180deg, rgba(2,6,23,0.95), rgba(2,8,27,0.98));z-index:1000;display:flex;align-items:center;justify-content:center}
-  .lock-card{width:min(520px,96vw);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:16px;padding:22px;box-shadow:0 8px 30px rgba(2,6,23,0.7);backdrop-filter: blur(6px);border:1px solid rgba(255,255,255,0.03);}
+  .lock-card{width:min(520px,96vw);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:16px;padding:22px;}
   .brand{display:flex;gap:12px;align-items:center;margin-bottom:6px;}
-  .logo{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#60a5fa);display:flex;align-items:center;justify-content:center;font-weight:700;color:#022;box-shadow:0 6px 20px rgba(0,0,0,0.4)}
+  .logo{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#60a5fa);display:flex;align-items:center;justify-content:center;font-weight:700;color:#022}
   h1{font-size:18px;margin:0}
-  p.lead{color:var(--muted);margin:6px 0 14px;font-size:13px}
   .pass-row{display:flex;gap:10px;align-items:center}
   input.pass{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:16px}
-  button.unlock{padding:10px 16px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--accent),#60a5fa);color:#001;font-weight:700;cursor:pointer;box-shadow:0 10px 25px rgba(96,165,250,0.08);transition:transform .12s ease}
-  button.unlock:active{transform:translateY(2px) scale(.995)}
-  /* Main layout */
+  button.unlock{padding:10px 16px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--accent),#60a5fa);color:#001;font-weight:700;cursor:pointer}
   .content{display:flex;flex:1;gap:12px;align-items:stretch}
   .left{flex:1;display:flex;flex-direction:column;gap:8px}
-  .pdfwrap{background:var(--glass-2);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.02);display:flex;flex-direction:column;height:100%;}
-  .pdftop{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent)}
-  .pdftitle{font-weight:600}
+  .pdfwrap{background:rgba(255,255,255,0.02);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.02);display:flex;flex-direction:column;height:100%}
   .embedarea{flex:1;background:#000;min-height:320px;display:flex}
   .embedarea iframe{width:100%;height:100%;border:none}
-  .open-disc-btn{display:block;width:100%;padding:14px;border:none;border-top:1px solid rgba(255,255,255,0.02);background:linear-gradient(90deg,#0f1724, #081224);color:var(--accent);font-weight:700;cursor:pointer;transition:transform .12s, background .2s;position:relative;z-index:2}
-  .open-disc-btn:active{transform:translateY(1px)}
-  /* Chat column */
+  .open-disc-btn{display:block;width:100%;padding:14px;border:none;border-top:1px solid rgba(255,255,255,0.02);background:linear-gradient(90deg,#0f1724,#081224);color:var(--accent);font-weight:700;cursor:pointer;position:relative;z-index:2}
   .right{width:420px;max-width:45%;min-width:300px;display:flex;flex-direction:column;gap:8px}
   .chat-card{flex:1;border-radius:12px;padding:12px;background:linear-gradient(180deg, rgba(255,255,255,0.012), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.02);display:flex;flex-direction:column;gap:8px}
   .topbar{display:flex;align-items:center;justify-content:space-between}
-  .you-label{font-weight:700}
+  .label-wrap{display:flex;flex-direction:column}
+  .labelName{font-weight:700}
+  .presence-line{display:flex;align-items:center;gap:8px}
+  .presence-dot{width:12px;height:12px;border-radius:50%;background:#7f1d1d;display:inline-block;box-shadow:0 0 8px rgba(0,0,0,0.4)}
   .msgs{flex:1;overflow:auto;padding:8px;display:flex;flex-direction:column;gap:8px}
-  .msg.me{align-self:flex-end;background:linear-gradient(90deg,var(--accent),#60a5fa);color:#022;padding:10px 12px;border-radius:12px;max-width:80%}
-  .msg.them{align-self:flex-start;background:var(--glass);padding:10px 12px;border-radius:12px;max-width:80%;color:var(--muted)}
+  .msg.me{align-self:flex-end;background:linear-gradient(90deg,var(--accent),#60a5fa);color:#022;padding:10px 12px;border-radius:12px;max-width:80%;position:relative}
+  .msg.them{align-self:flex-start;background:rgba(255,255,255,0.03);padding:10px 12px;border-radius:12px;max-width:80%;color:var(--muted)}
   .meta{font-size:11px;color:var(--muted);margin-top:6px}
   .typing{font-size:13px;color:var(--muted);height:18px}
   .composer{display:flex;gap:8px;align-items:center;padding-top:6px}
   textarea.input{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);min-height:44px;resize:none;background:transparent;color:inherit}
   button.send{padding:10px 14px;border-radius:10px;border:none;background:linear-gradient(90deg,#60a5fa,var(--accent));color:#022;font-weight:700;cursor:pointer}
   button.back{padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted);cursor:pointer}
-  /* Mobile */
-  @media (max-width:900px){
-    .content{flex-direction:column}
-    .right{width:100%;max-width:100%;min-width:unset}
-    .chat-card{height:48vh;order:2}
-    .pdfwrap{height:calc(52vh - 12px)}
-    .open-disc-btn{position:sticky;bottom:0;z-index:30}
-    input.pass{font-size:18px;padding:14px}
-    button.unlock{padding:12px 18px}
-  }
-  /* small animations */
-  .pulse{animation:pulse 1.8s infinite}
-  @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.02)}100%{transform:scale(1)}}
+  .read-indicator{font-size:12px;color:#94a3b8;margin-left:8px}
+  .read-indicator.read{color:#34d399} /* green when read */
+  @media (max-width:900px){ .content{flex-direction:column} .right{width:100%;max-width:100%;min-width:unset} .chat-card{height:48vh;order:2} .pdfwrap{height:calc(52vh - 12px)} .open-disc-btn{position:sticky;bottom:0;z-index:30} input.pass{font-size:18px;padding:14px} }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <!-- LOCK OVERLAY (hidden after unlock) -->
+  <!-- LOCK OVERLAY -->
   <div id="lock" class="lock-overlay" aria-hidden="false">
     <div class="lock-card">
       <div class="brand">
         <div class="logo">SV</div>
         <div>
           <h1>StudyVault — Secure Study Page</h1>
-          <p class="lead">This page is locked. Enter passcode to view the document and open discussions.</p>
+          <p class="lead" style="color:#94a3b8;margin:6px 0 14px;font-size:13px">This page is locked. Enter passcode to view the document and open discussions.</p>
         </div>
       </div>
 
@@ -89,31 +68,30 @@
     </div>
   </div>
 
-  <!-- Main content (hidden behind lock until unlocked) -->
+  <!-- MAIN -->
   <div id="main" style="display:none" class="content" aria-hidden="true">
-
-    <!-- Left: PDF viewer -->
     <div class="left">
       <div class="pdfwrap">
-        <div class="pdftop">
-          <div class="pdftitle">Economics — Study Paper (embedded)</div>
-          <div style="color:var(--muted);font-size:13px">Preview</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent)">
+          <div style="font-weight:600">Economics — Study Paper (embedded)</div>
+          <div style="color:#94a3b8;font-size:13px">Preview</div>
         </div>
         <div class="embedarea" id="pdfContainer">
-          <!-- Use a single iframe for better mobile compatibility -->
           <iframe id="pdfIframe" src="Economics-SQP.pdf" allowfullscreen></iframe>
         </div>
         <button id="openDiscussionsBtn" class="open-disc-btn">Open Discussions</button>
       </div>
     </div>
 
-    <!-- Right: Chat -->
     <div class="right">
       <div class="chat-card" id="chatCard" style="display:none">
         <div class="topbar">
-          <div>
-            <div class="you-label" id="labelName">studyAdda</div>
-            <div class="meta" id="statusMeta">Encrypted chat — messages vanish when you go back</div>
+          <div class="label-wrap">
+            <div id="labelName" class="labelName">studyAdda</div>
+            <div id="presenceWrap" class="presence-line" style="display:none">
+              <span id="presenceDot" class="presence-dot" title="Offline"></span>
+              <span id="presenceText" style="color:#94a3b8;font-size:13px">Offline</span>
+            </div>
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <button id="backBtn" class="back">Back to the page</button>
@@ -121,38 +99,31 @@
         </div>
 
         <div class="msgs" id="messages"></div>
-        <div class="typing" id="typingIndicator"></div>
+        <div id="typingIndicator" class="typing"></div>
 
         <div class="composer">
           <textarea id="inputBox" class="input" placeholder="Type a message..." rows="2"></textarea>
           <button id="sendBtn" class="send">Send</button>
         </div>
-
       </div>
-      <!-- small hint card when chat closed -->
-      <div id="chatHint" style="display:flex;align-items:center;gap:8px;flex-direction:column;justify-content:center;border-radius:12px;padding:12px;background:var(--glass);border:1px solid rgba(255,255,255,0.02);min-height:120px">
+
+      <div id="chatHint" style="display:flex;align-items:center;gap:8px;flex-direction:column;justify-content:center;border-radius:12px;padding:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.02);min-height:120px">
         <div style="font-weight:600">Discussions are private & encrypted</div>
-        <div style="color:var(--muted);font-size:13px">Open the discussions after reading the document to chat with each other.</div>
+        <div style="color:#94a3b8;font-size:13px">Open the discussions after reading the document to chat with each other.</div>
       </div>
     </div>
-
   </div>
 </div>
 
 <script>
-/* ------------------------
-   Config — change only if needed
-   ------------------------ */
+/* ---------------- CONFIG ---------------- */
 const SIGNALING_SERVER = 'wss://study-signal.bravioimporter.workers.dev/'; // your worker wss
 const NOTIFY_URL = 'https://study-signal.bravioimporter.workers.dev/notify';
-const NOTIFY_SECRET_CLIENT = 'studyvault2511'; // must match NOTIFY_SECRET in worker
-// Encryption secret (both people must use same value)
-const CHAT_SECRET = 'studyvault-chat-secret-2025'; // change if you want; must match on both ends
+const NOTIFY_SECRET_CLIENT = 'studyvault2511';
+const CHAT_SECRET = 'studyvault-chat-secret-2025';
 const ROOM = 'room1';
 
-/* ------------------------
-   UI references
-   ------------------------ */
+/* ---------------- UI refs ---------------- */
 const lock = document.getElementById('lock');
 const main = document.getElementById('main');
 const passInput = document.getElementById('passInput');
@@ -162,108 +133,85 @@ const chatCard = document.getElementById('chatCard');
 const chatHint = document.getElementById('chatHint');
 const messagesDiv = document.getElementById('messages');
 const labelName = document.getElementById('labelName');
+const presenceWrap = document.getElementById('presenceWrap');
+const presenceDot = document.getElementById('presenceDot');
+const presenceText = document.getElementById('presenceText');
 const typingIndicator = document.getElementById('typingIndicator');
 const inputBox = document.getElementById('inputBox');
 const sendBtn = document.getElementById('sendBtn');
 const backBtn = document.getElementById('backBtn');
 
-/* ------------------------
-   App state
-   ------------------------ */
+/* ---------------- State ---------------- */
 let unlocked = false;
-let localName = 'studyAdda'; // default (before unlocking)
+let localName = 'studyAdda'; // default before unlock
 let cryptoKey = null;
 let ws = null;
 let typingTO = null;
+const presenceByName = {}; // map name -> 'offline'|'on-page'|'on-chat'
 
-/* ------------------------
-   Preloaded discussion messages (realistic, based on economics document)
-   These will be inserted only when discussions open and there are no saved messages.
-   ------------------------ */
-const PRELOADED = [
-  { who: 'them', text: "Did you check the example on aggregate demand in section 3? The graph shifts are interesting." },
-  { who: 'me', text: "Yes — the fiscal stimulus example changes consumption immediately, but long-run output is unaffected." },
-  { who: 'them', text: "I wasn't sure about the multiplier value. The worked example uses MPC = 0.8, right?" },
-  { who: 'me', text: "Exactly. That gives multiplier 1/(1-0.8)=5. They discuss policy implications." },
-  { who: 'them', text: "Also the supply curve discussion on page 12 clarifies short-run vs long-run supply." },
-  { who: 'me', text: "Let's note the assumptions: price stickiness and expectations — it matters for the model." },
-];
-
-/* ------------------------
-   Utilities: base64 <-> ArrayBuffer
-   ------------------------ */
-function bufToBase64(buf) {
-  const arr = Array.from(new Uint8Array(buf));
-  const binary = arr.map(b => String.fromCharCode(b)).join('');
-  return btoa(binary);
-}
-function base64ToBuf(b64) {
-  const binary = atob(b64);
-  const len = binary.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes.buffer;
-}
-
-/* ------------------------
-   Encryption helpers
-   AES-GCM via Web Crypto; derive key from CHAT_SECRET (PBKDF2)
-   ------------------------ */
-async function deriveKeyFromSecret(secret) {
-  const salt = new TextEncoder().encode('studyvault-salt-2025'); // fixed salt (both must use same)
+/* ---------- crypto helpers ---------- */
+function bufToBase64(buf){ const arr=Array.from(new Uint8Array(buf)); return btoa(arr.map(c=>String.fromCharCode(c)).join('')); }
+function base64ToBuf(b64){ const binary = atob(b64); const len=binary.length; const bytes=new Uint8Array(len); for(let i=0;i<len;i++) bytes[i]=binary.charCodeAt(i); return bytes.buffer; }
+async function deriveKeyFromSecret(secret){
+  const salt = new TextEncoder().encode('studyvault-salt-2025');
   const enc = new TextEncoder().encode(secret);
   const baseKey = await crypto.subtle.importKey('raw', enc, { name: 'PBKDF2' }, false, ['deriveKey']);
-  const key = await crypto.subtle.deriveKey({
-    name: 'PBKDF2',
-    salt,
-    iterations: 150000,
-    hash: 'SHA-256'
-  }, baseKey, { name: 'AES-GCM', length: 256 }, false, ['encrypt','decrypt']);
+  const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 150000, hash: 'SHA-256' }, baseKey, { name: 'AES-GCM', length: 256 }, false, ['encrypt','decrypt']);
   return key;
 }
-
-async function encryptMessage(plain) {
+async function encryptMessage(plain){
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const enc = new TextEncoder().encode(plain);
   const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, cryptoKey, enc);
   return { iv: bufToBase64(iv.buffer), payload: bufToBase64(cipher) };
 }
-
-async function decryptMessage(ivB64, payloadB64) {
-  try {
+async function decryptMessage(ivB64, payloadB64){
+  try{
     const iv = base64ToBuf(ivB64);
     const data = base64ToBuf(payloadB64);
     const plainBuf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: new Uint8Array(iv) }, cryptoKey, data);
     return new TextDecoder().decode(plainBuf);
-  } catch (e) {
-    // failed to decrypt
-    return null;
-  }
+  } catch(e){ return null; }
 }
 
-/* ------------------------
-   UI helpers
-   ------------------------ */
-function appendMessage(text, whoIs) {
+/* ---------- UI helpers ---------- */
+function appendMessage(text, whoIs, mid=null, read=false){
   const el = document.createElement('div');
   el.className = whoIs === 'me' ? 'msg me' : 'msg them';
   el.textContent = text;
+  if(mid) el.dataset.mid = mid;
+  // if this is a message sent by studyAdda (localName === 'studyAdda' and whoIs==='me') show read indicator
+  if (whoIs === 'me' && localName === 'studyAdda') {
+    const r = document.createElement('span');
+    r.className = 'read-indicator' + (read ? ' read' : '');
+    r.textContent = read ? '✓ read' : '✓';
+    r.style.marginLeft = '8px';
+    el.appendChild(r);
+  }
   messagesDiv.appendChild(el);
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  const list = Array.from(messagesDiv.querySelectorAll('.msg')).map(m => ({text:m.textContent, cls:m.className}));
+  // persist in session only (vanish on back)
+  const list = Array.from(messagesDiv.querySelectorAll('.msg')).map(m=>({text:m.firstChild.textContent || m.textContent, cls:m.className, mid:m.dataset.mid||null, read:!!m.querySelector('.read-indicator.read')}));
   sessionStorage.setItem('sv_msgs', JSON.stringify(list));
 }
-
-function loadSessionMessages() {
+function loadSessionMessages(){
   const raw = sessionStorage.getItem('sv_msgs');
-  if (!raw) return false;
-  try {
+  if(!raw) return false;
+  try{
     const arr = JSON.parse(raw);
     messagesDiv.innerHTML = '';
-    arr.forEach(it => {
+    arr.forEach(it=>{
       const el = document.createElement('div');
       el.className = it.cls;
       el.textContent = it.text;
+      if(it.mid) el.dataset.mid = it.mid;
+      if (it.cls.includes('me') && localName === 'studyAdda') {
+        const r = document.createElement('span');
+        r.className = 'read-indicator' + (it.read ? ' read' : '');
+        r.textContent = it.read ? '✓ read' : '✓';
+        r.style.marginLeft = '8px';
+        el.appendChild(r);
+      }
       messagesDiv.appendChild(el);
     });
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
@@ -271,141 +219,185 @@ function loadSessionMessages() {
   } catch(e){ return false; }
 }
 
-/* Insert preloaded messages only if no session messages */
-function insertPreloadedIfEmpty() {
-  if (messagesDiv.children.length === 0) {
-    PRELOADED.forEach(it => appendMessage(it.text, it.who === 'me' ? 'me' : 'them'));
-  }
+/* ---------- Preloaded messages ---------- */
+const PRELOADED = [
+  { who:'them', text: "Check section 3's aggregate demand graph — the shift is caused by fiscal stimulus."},
+  { who:'me', text: "Yes. With MPC=0.8 the multiplier is 5 — they used that in the example."},
+  { who:'them', text: "Page 12's supply curve discussion clarifies short-run vs long-run."},
+  { who:'me', text: "Don't forget the price-stickiness assumption — it's key to the result."}
+];
+
+/* ---------- Presence UI & logic ---------- */
+function renderPresenceUI(){
+  // show presence info only to studyAdda (your account)
+  if(localName !== 'studyAdda'){ presenceWrap.style.display = 'none'; return; }
+  presenceWrap.style.display = 'flex';
+  const status = presenceByName['You'] || 'offline';
+  if(status === 'offline'){ presenceDot.style.background = '#7f1d1d'; presenceText.textContent = 'Offline'; presenceDot.title='Offline'; }
+  else if(status === 'on-page'){ presenceDot.style.background = '#d97706'; presenceText.textContent = 'On page'; presenceDot.title='On page'; }
+  else if(status === 'on-chat'){ presenceDot.style.background = '#10b981'; presenceText.textContent = 'In chat'; presenceDot.title='In chat'; }
 }
 
-/* ------------------------
-   Notify worker so you get Telegram ping when she joins as "You"
-   ------------------------ */
-async function notifyServerIfSheIsYou() {
-  try {
-    if (localName === 'You') {
-      await fetch(NOTIFY_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-notify-secret': NOTIFY_SECRET_CLIENT
-        },
-        body: JSON.stringify({
-          secret: NOTIFY_SECRET_CLIENT,
-          who: 'You',
-          room: ROOM,
-          ts: Date.now()
-        })
-      }).catch(()=>{});
+/* send presence over signaling */
+async function sendPresence(status){
+  try{
+    if(!ws || ws.readyState !== WebSocket.OPEN){
+      await connectSignaling();
+      await new Promise(r=>setTimeout(r,120));
     }
-  } catch(e) {}
+    const msg = { type:'presence', status, name: localName };
+    if(ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
+  } catch(e){ console.warn('presence send failed', e); }
 }
 
-/* ------------------------
-   Signaling: connect on demand
-   ------------------------ */
-async function connectSignaling() {
-  if (ws && ws.readyState === WebSocket.OPEN) return;
-  try {
+/* ---------- Notify function (improved) ---------- */
+async function notifyServerIfSheIsYou(){
+  try{
+    if(localName !== 'You') return;
+    const payload = { secret: NOTIFY_SECRET_CLIENT, who:'You', room:ROOM, ts: Date.now() };
+    console.log('notify: sending', payload);
+    const doFetch = async ()=> {
+      const r = await fetch(NOTIFY_URL, { method:'POST', headers:{ 'Content-Type':'application/json', 'x-notify-secret': NOTIFY_SECRET_CLIENT }, body: JSON.stringify(payload) });
+      const text = await r.text().catch(()=>'<no-body>');
+      console.log('notify: response', r.status, text);
+      return { ok: r.ok, status: r.status, text };
+    };
+    let res = await doFetch().catch(e=>({ ok:false, error:e }));
+    if(!res.ok && res.error){ console.warn('notify retry', res.error); res = await doFetch().catch(e=>({ ok:false, error:e })); }
+    if(!res.ok) console.error('notify failed', res); else console.log('notify success');
+  }catch(e){ console.error('notify unexpected', e); }
+}
+
+/* ---------- Signaling connection & handlers (includes presence & read) ---------- */
+async function connectSignaling(){
+  if(ws && ws.readyState === WebSocket.OPEN) return;
+  try{
     ws = new WebSocket(SIGNALING_SERVER);
-    ws.addEventListener('open', () => {
-      console.log('Signaling: connected');
-    });
-    ws.addEventListener('message', async (e) => {
-      try {
+    ws.addEventListener('open', ()=>{ console.log('Signaling connected'); });
+    ws.addEventListener('message', async (e)=>{
+      try{
         const data = JSON.parse(e.data);
-        if (data.type === 'typing') {
+
+        // presence message
+        if(data.type === 'presence' && data.name){
+          presenceByName[data.name] = data.status || 'offline';
+          renderPresenceUI();
+          return;
+        }
+
+        // typing indicator
+        if(data.type === 'typing'){
           typingIndicator.textContent = data.from === localName ? '' : (data.from + ' is typing...');
-          if (typingTO) clearTimeout(typingTO);
+          if(typingTO) clearTimeout(typingTO);
           typingTO = setTimeout(()=>{ typingIndicator.textContent = ''; }, 2000);
           return;
         }
-        if (data.type === 'enc') {
-          const dec = await decryptMessage(data.iv, data.payload);
-          if (dec !== null) {
-            const who = data.name === localName ? 'me' : 'them';
-            appendMessage(dec, who === 'me' ? 'me' : 'them');
+
+        // read receipt
+        if(data.type === 'read' && data.mid){
+          // mark message with mid as read (only relevant for sender's UI)
+          // only show read status in studyAdda profile
+          if(localName === 'studyAdda'){
+            const m = messagesDiv.querySelector(`[data-mid="${data.mid}"]`);
+            if(m){
+              let r = m.querySelector('.read-indicator');
+              if(!r){
+                r = document.createElement('span');
+                r.className = 'read-indicator';
+                r.textContent = '✓';
+                r.style.marginLeft = '8px';
+                m.appendChild(r);
+              }
+              r.classList.add('read');
+              r.textContent = '✓ read';
+            }
           }
+          return;
         }
-      } catch (err) {}
+
+        // encrypted message
+        if(data.type === 'enc'){
+          // data.mid is available
+          const dec = await decryptMessage(data.iv, data.payload);
+          if(dec !== null){
+            const whoIs = data.name === localName ? 'me' : 'them';
+            appendMessage(dec, whoIs, data.mid, false);
+            // If this client is 'You' (the girlfriend) and chat is open, send read receipt for this mid
+            if(localName === 'You' && chatCard.style.display === 'flex'){
+              // small delay to simulate reading
+              setTimeout(()=> {
+                try{ if(ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type:'read', mid: data.mid, from: localName })); } catch(e){}
+              }, 400);
+            }
+          }
+          return;
+        }
+      }catch(err){ console.warn('ws message parse err', err); }
     });
-    ws.addEventListener('close', () => { console.log('Signaling: closed'); });
-    ws.addEventListener('error', (err) => { console.warn('Signaling error', err); });
-  } catch (e) {
-    console.warn('connect failed', e);
-  }
+    ws.addEventListener('close', ()=>console.log('Signaling closed'));
+    ws.addEventListener('error', (err)=>console.warn('Signaling error', err));
+  }catch(e){ console.warn('connectSignaling failed', e); }
 }
 
-/* ------------------------
-   Send message
-   ------------------------ */
-async function sendMessagePlain(text) {
-  if (!cryptoKey) return;
-  const {iv, payload} = await encryptMessage(text);
-  appendMessage(text, 'me');
-  const obj = { type:'enc', payload, iv, name: localName };
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify(obj));
-  }
+/* ---------- Send encrypted message with mid ---------- */
+async function sendMessagePlain(text){
+  if(!cryptoKey) return;
+  const { iv, payload } = await encryptMessage(text);
+  const mid = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8);
+  appendMessage(text, 'me', mid, false);
+  const obj = { type:'enc', payload, iv, name: localName, mid };
+  if(ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(obj));
 }
 
-/* typing */
-function sendTyping() {
-  if (!ws || ws.readyState !== WebSocket.OPEN) return;
-  const obj = { type:'typing', from: localName };
-  try { ws.send(JSON.stringify(obj)); } catch(e){}
+/* ---------- typing ---------- */
+function sendTyping(){
+  if(!ws || ws.readyState !== WebSocket.OPEN) return;
+  try{ ws.send(JSON.stringify({ type:'typing', from: localName })); } catch(e){}
 }
 
-/* ------------------------
-   UI actions
-   ------------------------ */
+/* ---------- UI actions ---------- */
 unlockBtn.addEventListener('click', doUnlock);
-passInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') doUnlock(); });
+passInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') doUnlock(); });
 
 async function doUnlock(){
   const v = passInput.value.trim();
   if(!v) return;
-  if (v === '2511') {
-    localName = 'You'; // she uses this
-  } else if (v === '2809') {
-    localName = 'studyAdda'; // you
-  } else {
-    alert('Wrong passcode');
-    passInput.value = '';
-    return;
-  }
+  if (v === '2511') localName = 'You';
+  else if (v === '2809') localName = 'studyAdda';
+  else { alert('Wrong passcode'); passInput.value=''; return; }
 
   cryptoKey = await deriveKeyFromSecret(CHAT_SECRET);
-
   labelName.textContent = localName;
   lock.style.display = 'none';
   main.style.display = 'flex';
   unlocked = true;
 
-  // notify only if she joined as "You"
+  // notify if she (You) joined
   notifyServerIfSheIsYou();
 
-  // prepare chat area (closed by default)
+  // ensure signaling connected and announce presence: on-page
+  await connectSignaling();
+  sendPresence('on-page');
+
   chatHint.style.display = 'flex';
   chatCard.style.display = 'none';
   messagesDiv.innerHTML = '';
   sessionStorage.removeItem('sv_msgs');
 }
 
-/* Open discussions button */
-openDiscussionsBtn.addEventListener('click', async () => {
-  if (!unlocked) { alert('Please unlock the page first'); return; }
+/* Open discussions */
+openDiscussionsBtn.addEventListener('click', async ()=>{
+  if(!unlocked){ alert('Please unlock first'); return; }
   chatCard.style.display = 'flex';
   chatHint.style.display = 'none';
-  // connect to signaling
   await connectSignaling();
-  // load session messages or insert preloaded sample conversation
+  sendPresence('on-chat'); // announce in-chat
   const loaded = loadSessionMessages();
-  if (!loaded) insertPreloadedIfEmpty();
+  if(!loaded) PRELOADED.forEach(it=>appendMessage(it.text, it.who==='me'?'me':'them'));
 });
 
-/* Send message */
-sendBtn.addEventListener('click', async () => {
+/* Send */
+sendBtn.addEventListener('click', async ()=>{
   const txt = inputBox.value.trim();
   if(!txt) return;
   await sendMessagePlain(txt);
@@ -413,48 +405,44 @@ sendBtn.addEventListener('click', async () => {
 });
 
 /* typing */
-inputBox.addEventListener('input', () => {
+let typingTimer=null;
+inputBox.addEventListener('input', ()=>{
   sendTyping();
 });
 
-/* Back to page button (clears messages) */
-backBtn.addEventListener('click', () => {
-  messagesDiv.innerHTML = '';
-  sessionStorage.removeItem('sv_msgs');
-  chatCard.style.display = 'none';
-  chatHint.style.display = 'flex';
-  // scroll pdf to top if possible
-  try {
-    const pdfFrame = document.getElementById('pdfIframe');
-    if(pdfFrame && pdfFrame.contentWindow) pdfFrame.contentWindow.scrollTo(0,0);
-  } catch(e){}
+/* Back (leave chat, go back to page) */
+backBtn.addEventListener('click', ()=>{
+  messagesDiv.innerHTML=''; sessionStorage.removeItem('sv_msgs');
+  chatCard.style.display='none'; chatHint.style.display='flex';
+  // announce on-page (left chat)
+  sendPresence('on-page');
+  try{ const pdfFrame=document.getElementById('pdfIframe'); if(pdfFrame && pdfFrame.contentWindow) pdfFrame.contentWindow.scrollTo(0,0); } catch(e){}
 });
 
-/* Clear on unload */
-window.addEventListener('beforeunload', () => {
-  try { sessionStorage.removeItem('sv_msgs'); } catch(e){}
-  if(ws) try { ws.close(); } catch(e){}
+/* beforeunload -> send offline best-effort */
+window.addEventListener('beforeunload', ()=>{
+  try{
+    if(ws && ws.readyState === WebSocket.OPEN){
+      try{ ws.send(JSON.stringify({ type:'presence', status:'offline', name: localName })); } catch(_){}
+    }
+  }catch(e){}
+  try{ sessionStorage.removeItem('sv_msgs'); } catch(e){}
+  if(ws) try{ ws.close(); } catch(e){}
 });
+
+/* clear messages on unload */
+window.addEventListener('unload', ()=>{ try{ sessionStorage.removeItem('sv_msgs'); } catch(e){} });
 
 /* Enter sends */
-inputBox.addEventListener('keydown', (e) => {
-  if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendBtn.click(); }
-});
+inputBox.addEventListener('keydown', (e)=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendBtn.click(); } });
 
-/* adjust PDF area on resize */
-function adjustEmbed() {
-  const wrap = document.querySelector('.pdfwrap');
-  if (window.innerWidth <= 900) {
-    wrap.style.height = 'calc(52vh - 12px)';
-  } else {
-    wrap.style.height = '100%';
-  }
-}
+/* adjust embed */
+function adjustEmbed(){ const wrap=document.querySelector('.pdfwrap'); if(window.innerWidth<=900) wrap.style.height='calc(52vh - 12px)'; else wrap.style.height='100%'; }
 window.addEventListener('resize', adjustEmbed);
 adjustEmbed();
 
 /* debug helper */
-window.SV = { debugShowState: ()=>({localName, unlocked, wsState: ws ? ws.readyState : null}) };
+window.SV = { debugShowState: ()=>({ localName, unlocked, wsState: ws?ws.readyState:null, presenceByName }) };
 </script>
 </body>
 </html>
