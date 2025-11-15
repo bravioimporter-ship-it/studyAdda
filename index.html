@@ -2,316 +2,436 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Study Vault — Economics (Auto P2P)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Study Vault — Economics (Mobile-friendly)</title>
 <style>
+/* ---------------- theme ---------------- */
 :root{
   --bg:#071025;
+  --card:#0a1220;
   --muted:#9aa6bf;
-  --accent:#7dd3fc;
-  --panel: rgba(255,255,255,0.03);
+  --accent:#38bdf8;
+  --accent-2:#7dd3fc;
+  --glass: rgba(255,255,255,0.04);
+  --radius:14px;
   font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
 }
+
+/* reset */
 *{box-sizing:border-box}
-html,body{height:100%;margin:0;background:linear-gradient(180deg,#071025,#05122a);color:#e6eef8}
-.container{min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:20px}
-.frame{width:1100px;max-width:1100px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.6);overflow:hidden;display:grid;grid-template-columns:420px 1fr;gap:0;}
-header{grid-column:1/-1;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.03);display:flex;align-items:center;gap:12px}
-.header-title{display:flex;flex-direction:column}
-.header-title h1{font-size:18px;margin:0}
-.header-title p{margin:0;color:var(--muted);font-size:13px}
-.left{padding:16px;border-right:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg,rgba(13,23,36,0.6),rgba(6,12,22,0.55))}
-.pdfwrap{display:flex;flex-direction:column;height:74vh;background:var(--panel);border-radius:8px;overflow:hidden;position:relative}
-.pdfframe{flex:1;border:0;width:100%;min-height:280px;background:#fff}
-.pdf-fallback{padding:12px;color:var(--muted);font-size:14px}
-.open-btn{width:100%;padding:12px;border:none;border-radius:8px;background:linear-gradient(90deg,var(--accent),#38bdf8);color:#012;font-weight:700;cursor:pointer;margin-top:8px}
-.open-btn:active{transform:translateY(1px)}
-.open-wrapper{position:sticky;bottom:0;background:linear-gradient(180deg, rgba(7,18,37,0.0), rgba(7,18,37,0.6));padding:10px}
-.left-meta{margin-top:10px;font-size:13px;color:var(--muted)}
-.right{padding:16px;display:flex;flex-direction:column;gap:12px;background:linear-gradient(180deg,rgba(1,6,14,0.4),rgba(2,9,18,0.4))}
-.panel{background:rgba(255,255,255,0.01);padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.02)}
-.chat{flex:1;display:flex;flex-direction:column;gap:8px}
-.msgs{flex:1;overflow:auto;padding:12px;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,0.01),rgba(255,255,255,0.005));border:1px solid rgba(255,255,255,0.02)}
-.msg{margin-bottom:10px;max-width:80%}
-.msg.you{align-self:flex-end;background:linear-gradient(90deg,#08304a,#074b66);padding:8px 10px;border-radius:10px 10px 4px 10px}
-.msg.them{align-self:flex-start;background:linear-gradient(90deg,#0b2b1a,#0c3c28);padding:8px 10px;border-radius:10px 10px 10px 4px}
-.msg small{display:block;font-size:11px;color:var(--muted)}
-.compose{display:flex;gap:8px;margin-top:6px}
-.compose input[type="text"]{flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit}
-.compose button{padding:10px 14px;border-radius:8px;border:none;background:var(--accent);color:#012;font-weight:700;cursor:pointer}
-.locked-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(0deg,rgba(1,2,6,0.6),rgba(1,2,6,0.6));z-index:9999}
-.lockcard{width:420px;max-width:92%;background:#07111a;padding:18px;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.03)}
+html,body{height:100%;margin:0;background:linear-gradient(180deg,#071025 0%, #041029 100%);color:#e6eef8}
+a{color:var(--accent)}
+
+.app{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px}
+.frame{
+  width:1100px; max-width:100%; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius:var(--radius); box-shadow: 0 18px 40px rgba(2,10,20,0.6);
+  overflow:hidden; display:grid; grid-template-columns:420px 1fr; gap:0;
+  transition:transform .2s ease;
+  border: 1px solid rgba(255,255,255,0.02);
+}
+
+/* header */
+.header{
+  grid-column:1/-1; display:flex; align-items:center; justify-content:space-between;
+  padding:14px 18px; border-bottom:1px solid rgba(255,255,255,0.03); background: linear-gradient(180deg, rgba(255,255,255,0.006), rgba(255,255,255,0.003));
+}
+.title{display:flex;flex-direction:column}
+.title h1{font-size:18px;margin:0}
+.title p{margin:0;color:var(--muted);font-size:13px}
+
+/* left: document */
+.left{padding:14px;border-right:1px solid rgba(255,255,255,0.02); background: linear-gradient(180deg, rgba(8,16,28,0.6), rgba(4,8,16,0.55)); display:flex; flex-direction:column; gap:12px}
+.pdfwrap{
+  position:relative; background:var(--glass); border-radius:10px; overflow:hidden; display:flex; flex-direction:column; height:74vh; min-height:420px;
+  box-shadow: inset 0 -40px 80px rgba(0,0,0,0.25);
+}
+.pdfframe{flex:1;width:100%;height:100%;border:0;background:#fff; display:block; transition:filter .25s ease, transform .25s ease;}
+.pdf-loading{filter:blur(4px) saturate(.9); transform:scale(.995)}
+
+/* sticky overlay bottom inside pdfwrap */
+.pdf-overlay{
+  position:absolute; left:0;right:0; bottom:0; display:flex; justify-content:center; padding:12px;
+  background: linear-gradient(180deg, rgba(7,12,20,0.00), rgba(3,6,10,0.65));
+  pointer-events:none;
+}
+.open-btn{
+  pointer-events:auto;
+  -webkit-tap-highlight-color: transparent;
+  border:0; padding:12px 18px; border-radius:12px; background:linear-gradient(90deg,var(--accent-2),var(--accent));
+  color:#012; font-weight:800; font-size:15px; width:100%;
+  max-width:420px; box-shadow: 0 8px 20px rgba(56,189,248,0.12);
+  transition:transform .08s ease, box-shadow .12s ease, opacity .12s ease;
+}
+.open-btn:active{ transform:translateY(2px) scale(.998) }
+.open-btn:disabled{ opacity:.6; cursor:not-allowed }
+
+/* fallback if iframe blocked */
+.pdf-fallback{padding:14px; color:var(--muted); font-size:14px; display:flex; flex-direction:column; gap:8px; align-items:flex-start}
+.pdf-fallback a{background:rgba(255,255,255,0.03); padding:8px 12px; border-radius:8px; text-decoration:none; color:var(--accent)}
+
+/* left meta */
+.note{color:var(--muted); font-size:13px}
+
+/* right: chat */
+.right{padding:14px; display:flex; flex-direction:column; gap:12px; background: linear-gradient(180deg, rgba(1,6,14,0.35), rgba(2,8,16,0.3))}
+.panel{background:rgba(255,255,255,0.01); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.02)}
+.status{font-size:13px;color:var(--muted)}
+
+/* chat area */
+.chat{display:flex; flex-direction:column; gap:8px; height:66vh; min-height:420px}
+.chatHidden{display:none}
+.msgs{flex:1; overflow:auto; padding:12px; border-radius:8px; background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005)); border:1px solid rgba(255,255,255,0.02)}
+.msg{display:inline-block; margin-bottom:10px; max-width:86%; line-height:1.3}
+.msg.you{align-self:flex-end; background:linear-gradient(90deg,#08304a,#074b66); padding:10px 12px; border-radius:12px 12px 6px 12px; box-shadow:0 6px 18px rgba(3,10,18,0.6)}
+.msg.them{align-self:flex-start; background:linear-gradient(90deg,#0b2b1a,#0c3c28); padding:10px 12px; border-radius:12px 12px 12px 6px; box-shadow:0 6px 18px rgba(3,10,18,0.6)}
+.msg small{display:block;margin-top:6px;font-size:12px;color:var(--muted)}
+
+/* compose row */
+.compose{display:flex;gap:8px; align-items:center}
+.compose input{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:15px;outline:none}
+.compose button{padding:12px 14px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent-2),var(--accent));color:#012;font-weight:700}
+
+/* room row */
+.room-row{display:flex;gap:8px;align-items:center}
+.room-row input{padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+
+/* small controls */
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.smallbtn{padding:8px 10px;border-radius:8px;border:1px dashed rgba(255,255,255,0.03);background:transparent;color:var(--muted)}
+
+/* clear chat button */
+.clear-btn{background:transparent;color:#f9a8d4;border:1px solid rgba(249,168,212,0.12);padding:8px 10px;border-radius:8px}
+
+/* sticky footer on small devices for pdf overlay */
+.footerNote{font-size:12px;color:var(--muted)}
+
+/* locked overlay */
+.locked-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(0deg,rgba(1,2,6,0.65),rgba(1,2,6,0.65));z-index:9999}
+.lockcard{width:420px;max-width:94%;background:#07111a;padding:18px;border-radius:12px;box-shadow:0 18px 40px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.03)}
 .lockcard h2{margin:0 0 8px 0}
 .pw{display:flex;gap:8px;margin-top:12px}
-.pw input{flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
-.hidden{display:none!important}
-.fallback{padding:12px;border-radius:8px;background:var(--panel);color:var(--muted);font-size:13px}
-.smallbtn{padding:8px 10px;background:transparent;color:var(--muted);border:1px dashed rgba(255,255,255,0.03);border-radius:8px;cursor:pointer}
-.room-row{display:flex;gap:8px;align-items:center}
-.status{font-size:13px;color:var(--muted)}
-footer{grid-column:1/-1;padding:12px 18px;border-top:1px solid rgba(255,255,255,0.02);font-size:12px;color:var(--muted);display:flex;justify-content:space-between}
+.pw input{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:16px}
 
-/* MOBILE: stack layout */
-@media (max-width:860px){
-  .frame{grid-template-columns:1fr;max-width:96%;width:100%}
+/* responsive: mobile-first */
+@media (max-width:920px){
+  .frame{grid-template-columns:1fr; width:100%; border-radius:12px}
   .left{order:1;padding:12px}
   .right{order:2;padding:12px}
   .pdfwrap{height:62vh}
-  .open-btn{padding:14px;font-size:16px;border-radius:10px}
-  header{padding:12px}
-  .header-title h1{font-size:16px}
-  .msgs{padding:10px}
-  .compose input[type="text"]{padding:12px}
+  .chat{height:40vh; min-height:240px}
+  .header{padding:12px}
+  .title h1{font-size:16px}
+  .open-btn{max-width:100%; padding:14px; font-size:16px}
+  .compose input{padding:14px}
+  .pw input{padding:14px}
 }
 
-/* SMALL MOBILE adjustments */
+/* tiny screens */
 @media (max-width:420px){
-  .pdfwrap{height:58vh}
-  .open-btn{font-size:15px}
-  .pw input{padding:12px}
+  .pdfwrap{height:56vh}
+  .open-btn{padding:12px;font-size:15px;border-radius:12px}
+  .compose input{font-size:15px;padding:12px}
 }
 </style>
 </head>
 <body>
-<div class="container">
-  <div class="frame hidden" id="mainFrame" aria-hidden="true">
-    <header>
-      <div class="header-title">
+<div class="app">
+  <div class="frame" id="frame">
+    <div class="header">
+      <div class="title">
         <h1>Study Vault — Economics</h1>
-        <p>Private study chat — auto online connect</p>
+        <p>Private study chat — enter passcode to unlock</p>
       </div>
-      <div style="margin-left:auto;text-align:right">
-        <p style="margin:0;font-size:13px;color:var(--muted)">Session: ephemeral • Auto signaling</p>
-      </div>
-    </header>
+      <div class="status" id="connStatus">Disconnected</div>
+    </div>
 
     <section class="left">
       <div class="pdfwrap" id="pdfWrap">
-        <!-- iframe src will be set only after unlocking -->
         <iframe id="pdfFrame" class="pdfframe" title="Document preview" aria-label="Document preview"></iframe>
 
-        <!-- fallback visible when browser blocks inline pdf (handled in JS) -->
-        <div id="pdfFallback" class="fallback hidden">
-          <div><strong>PDF preview unavailable locally.</strong></div>
-          <div style="margin-top:8px;color:var(--muted)">Open the PDF in a new tab:</div>
-          <a id="openPdfLink" class="smallbtn" href="Economics-SQP.pdf" target="_blank" rel="noopener">Open Economics-SQP.pdf</a>
+        <div id="pdfFallback" class="pdf-fallback" style="display:none">
+          <div><strong>PDF preview unavailable in this browser.</strong></div>
+          <div style="color:var(--muted)">Open the PDF in a new tab:</div>
+          <a id="openPdfLink" href="Economics-SQP.pdf" target="_blank" rel="noopener">Open Economics-SQP.pdf</a>
         </div>
 
-        <!-- Open discussions button anchored at bottom of PDF area -->
-        <div class="open-wrapper">
+        <div class="pdf-overlay" aria-hidden="true">
           <button id="openDiscussionsBtn" class="open-btn">Open discussions</button>
         </div>
       </div>
 
-      <div class="left-meta">
-        <strong>Note:</strong> Page password: <code>2511</code>
-      </div>
+      <div class="note">Tip: page passcodes: <strong>2511</strong> (normal) — <strong>2809</strong> (enter as <em>studyAdda</em>)</div>
     </section>
 
     <section class="right">
       <div class="panel">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div>
-            <strong>How it connects</strong>
-            <div style="color:var(--muted);font-size:13px;margin-top:6px">
-              Auto signaling + WebRTC P2P. Upload this page and the PDF to GitHub Pages, both open same room to connect.
-            </div>
+            <strong>Connection</strong>
+            <div style="color:var(--muted);font-size:13px;margin-top:6px">Auto signaling + WebRTC P2P. Both users join same room to connect.</div>
           </div>
-          <div style="text-align:right">
-            <div id="connStatus" class="status">Disconnected</div>
-          </div>
+          <div style="text-align:right"><div id="p2pState" class="status">P2P: not connected</div></div>
         </div>
       </div>
 
-      <div class="chat hidden" id="chatArea">
+      <div id="chatContainer" class="chat chatHidden" aria-live="polite">
         <div class="panel" style="display:flex;justify-content:space-between;align-items:center">
           <div><strong>Discussion</strong> <span style="color:var(--muted);font-size:12px">— studyAdda</span></div>
-          <div style="font-size:12px;color:var(--muted)"><span id="p2pState">P2P: not connected</span></div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button id="clearChat" class="clear-btn" title="Clear chat now">Clear</button>
+            <div style="font-size:12px;color:var(--muted)" id="msgInfo">Session only</div>
+          </div>
         </div>
 
-        <div class="msgs panel" id="messages" aria-live="polite"></div>
+        <div class="msgs panel" id="messages"></div>
 
         <div class="compose">
-          <input type="text" id="inputMsg" placeholder="Type a message..." autocomplete="off" />
+          <input id="inputMsg" type="text" placeholder="Type a message..." autocomplete="off" />
           <button id="sendBtn">Send</button>
         </div>
 
-        <div style="margin-top:8px">
+        <div style="margin-top:8px" class="panel">
           <div class="room-row">
-            <div style="font-size:13px;color:var(--muted)">Room:</div>
-            <input id="roomInput" style="flex:1;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.05);background:transparent;color:inherit" value="room1" />
+            <div style="font-size:13px;color:var(--muted);margin-right:6px">Room:</div>
+            <input id="roomInput" placeholder="room1" value="room1" />
             <button id="joinBtn" class="smallbtn">Join</button>
-            <button id="leaveBtn" class="smallbtn hidden">Leave</button>
+            <button id="leaveBtn" class="smallbtn" style="display:none">Leave</button>
           </div>
         </div>
       </div>
+
     </section>
 
-    <footer>
-      <div>Built for private study chats — messages vanish on tab close.</div>
+    <footer style="grid-column:1/-1;padding:12px 18px;border-top:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;font-size:12px;color:var(--muted)">
+      <div>Built for private study chats — messages vanish when tab closed.</div>
       <div>Document preview uses your uploaded file.</div>
     </footer>
   </div>
 </div>
 
-<!-- Locked overlay -->
+<!-- Locked overlay (blocks everything) -->
 <div class="locked-overlay" id="lockedOverlay" role="dialog" aria-modal="true">
   <div class="lockcard">
-    <h2>Enter password to unlock</h2>
-    <div style="color:var(--muted);font-size:13px">Enter the 4-digit password to proceed.</div>
-    <div class="pw">
-      <input id="pwInput" type="password" placeholder="Enter password" inputmode="numeric" />
+    <h2>Enter passcode to unlock</h2>
+    <div style="color:var(--muted);font-size:13px;margin-top:4px">Enter 4-digit passcode. Use <strong>2809</strong> to enter as <em>studyAdda</em>.</div>
+    <div class="pw" style="margin-top:12px">
+      <input id="pwInput" type="password" placeholder="Enter passcode" inputmode="numeric" />
       <button id="pwBtn" class="smallbtn">Unlock</button>
     </div>
-    <div style="margin-top:10px;font-size:13px;color:var(--muted)">After unlocking the document will load and you can open discussions from the button at the bottom of the document.</div>
+    <div style="margin-top:10px;color:var(--muted);font-size:13px">After unlocking the document will load. Use the button at the bottom of the document to open discussions.</div>
   </div>
 </div>
 
 <script>
-/* CONFIG */
-const SIGNALING_SERVER = 'wss://study-vault-signal.onrender.com';
-const PASSWORD = '2511';
-const STORAGE_KEY = 'study_chat_mobile_v1';
+/* ---------------- CONFIG ---------------- */
+const SIGNALING_SERVER = 'wss://study-vault-signal.onrender.com'; // your Render server
+const PASS_NORMAL = '2511';
+const PASS_STUDYADDA = '2809';
+const STORAGE_KEY = 'study_chat_mobile_v2';
 
-/* DOM */
+/* ---------------- DOM ---------------- */
 const lockedOverlay = document.getElementById('lockedOverlay');
 const pwInput = document.getElementById('pwInput');
 const pwBtn = document.getElementById('pwBtn');
-const mainFrame = document.getElementById('mainFrame');
 const pdfFrame = document.getElementById('pdfFrame');
 const pdfFallback = document.getElementById('pdfFallback');
 const openDiscussionsBtn = document.getElementById('openDiscussionsBtn');
-const openWrapper = document.querySelector('.open-wrapper');
-const chatArea = document.getElementById('chatArea');
+const chatContainer = document.getElementById('chatContainer');
 const messagesDiv = document.getElementById('messages');
 const inputMsg = document.getElementById('inputMsg');
 const sendBtn = document.getElementById('sendBtn');
-const roomInput = document.getElementById('roomInput');
 const joinBtn = document.getElementById('joinBtn');
 const leaveBtn = document.getElementById('leaveBtn');
+const roomInput = document.getElementById('roomInput');
 const connStatus = document.getElementById('connStatus');
 const p2pState = document.getElementById('p2pState');
-const openPdfLink = document.getElementById('openPdfLink');
+const clearChatBtn = document.getElementById('clearChat');
 
+let localIdentity = 'You'; // changes to 'studyAdda' when unlocking with PASS_STUDYADDA
 let unlocked = false;
+
+/* WebRTC + signaling */
 let ws = null;
 let pc = null;
 let dc = null;
 let currentRoom = null;
 
-/* sample messages */
+/* sample messages if none */
 const sampleMessages = [
-  {who:'them', text:"Hey — I read the sample paper about fiscal consolidation.", ts: Date.now()-1000*60*20},
-  {who:'you', text:"Yes — there's a good point about tax receipts helping the deficit.", ts: Date.now()-1000*60*18}
+  {sender:'studyAdda', text: "Hey — I read the sample paper about fiscal consolidation.", ts: Date.now()-1000*60*20},
+  {sender:'You', text: "Yes — there's a good point about tax receipts helping the deficit.", ts: Date.now()-1000*60*18}
 ];
 
-/* ===== UI helpers ===== */
+/* ---------------- helpers ---------------- */
 function escapeHtml(s){ return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+function loadMessages(){
+  const raw = sessionStorage.getItem(STORAGE_KEY);
+  if(!raw){
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sampleMessages));
+    return sampleMessages.slice();
+  }
+  try {
+    const arr = JSON.parse(raw);
+    if(Array.isArray(arr)) return arr;
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sampleMessages));
+    return sampleMessages.slice();
+  } catch(e){
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sampleMessages));
+    return sampleMessages.slice();
+  }
+}
+function saveMessages(arr){
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+}
+function clearMessages(){
+  sessionStorage.removeItem(STORAGE_KEY);
+  messagesDiv.innerHTML = '';
+}
+
+/* render messages (show sender text exactly) */
 function renderMessages(arr){
   messagesDiv.innerHTML = '';
   for(const m of arr){
     const el = document.createElement('div');
-    el.className = 'msg ' + (m.who==='you' ? 'you' : 'them');
-    const whoLabel = m.who==='you' ? 'You' : 'studyAdda';
-    el.innerHTML = '<div>' + escapeHtml(m.text) + '</div><small>' + whoLabel + ' • ' + new Date(m.ts).toLocaleTimeString() + '</small>';
+    el.className = 'msg ' + ((m.sender === localIdentity) ? 'you' : 'them');
+    el.innerHTML = '<div>' + escapeHtml(m.text) + '</div><small>' + escapeHtml(m.sender) + ' • ' + new Date(m.ts).toLocaleTimeString() + '</small>';
     messagesDiv.appendChild(el);
   }
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
-function loadMessages(){ const raw = sessionStorage.getItem(STORAGE_KEY); if(!raw){ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sampleMessages)); return sampleMessages.slice(); } try{ const arr=JSON.parse(raw); return Array.isArray(arr)?arr:[] }catch(e){ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sampleMessages)); return sampleMessages.slice(); } }
-function saveMessages(arr){ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
 
-/* ===== Unlock logic: set iframe src only after correct password ===== */
-pwBtn.addEventListener('click', ()=> unlockWithPassword(pwInput.value));
-pwInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') pwBtn.click(); });
+/* ---------------- Unlock flow: set iframe src only after correct passcode ---------------- */
+pwBtn.addEventListener('click', () => unlockFlow(pwInput.value));
+pwInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') pwBtn.click(); });
 
-function unlockWithPassword(pw){
-  if(pw !== PASSWORD){ alert('Incorrect password'); return false; }
+function unlockFlow(code){
+  if(code === PASS_NORMAL){
+    localIdentity = 'You';
+  } else if(code === PASS_STUDYADDA){
+    localIdentity = 'studyAdda';
+  } else {
+    alert('Incorrect passcode.');
+    return;
+  }
   unlocked = true;
   lockedOverlay.style.display = 'none';
-  mainFrame.classList.remove('hidden');
-  mainFrame.setAttribute('aria-hidden','false');
-  // load the PDF only after unlocking
-  try {
-    pdfFrame.src = 'Economics-SQP.pdf#view=fitH';
-  } catch(e){}
-  // check embed fallback
-  tryCheckPdfEmbed();
-  return true;
-}
-
-/* If browser blocks inline PDF (file:// etc.), show fallback */
-function tryCheckPdfEmbed(){
-  let loaded = false;
-  pdfFrame.addEventListener('load', ()=> {
-    pdfFallback.classList.add('hidden');
-    pdfFrame.classList.remove('hidden');
-    loaded = true;
+  // load PDF into iframe now
+  pdfFrame.src = 'Economics-SQP.pdf#view=FitH';
+  pdfFrame.classList.remove('pdf-loading');
+  // show fallback or hide fallback after load check
+  pdfFrame.addEventListener('load', () => {
+    pdfFallback.style.display = 'none';
+    pdfFrame.style.display = 'block';
   }, { once:true });
-  setTimeout(()=>{ if(!loaded) pdfFallback.classList.remove('hidden'); }, 900);
+  setTimeout(()=>{ if(pdfFrame.contentWindow === null) { pdfFallback.style.display = 'block'; pdfFrame.style.display='none'; } }, 900);
+  // update UI text
+  connStatus.textContent = 'Unlocked';
+  connStatus.style.color = '#8fe';
 }
 
-/* ===== Open discussions button ===== */
-openDiscussionsBtn.addEventListener('click', ()=> {
-  if(!unlocked){ alert('Please unlock the page first.'); return; }
-  chatArea.classList.remove('hidden');
-  renderMessages(loadMessages());
-  // focus the input on mobile
-  setTimeout(()=> inputMsg.focus(), 200);
+/* ---------------- Open discussions button ---------------- */
+openDiscussionsBtn.addEventListener('click', () => {
+  if(!unlocked){ alert('Unlock first'); return; }
+  chatContainer.classList.remove('chatHidden');
+  const arr = loadMessages();
+  renderMessages(arr);
+  inputMsg.focus();
 });
 
-/* ===== Messaging ===== */
-sendBtn.addEventListener('click', ()=> { const t=inputMsg.value.trim(); if(!t) return; sendLocalMessage(t); inputMsg.value=''; });
-inputMsg.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ sendBtn.click(); e.preventDefault(); } });
+/* ---------------- send local message (and forward via DataChannel if open) ---------------- */
+sendBtn.addEventListener('click', sendMessageFromInput);
+inputMsg.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ sendMessageFromInput(); e.preventDefault(); } });
 
-function sendLocalMessage(text){
+function sendMessageFromInput(){
+  const text = inputMsg.value.trim();
+  if(!text) return;
   const arr = loadMessages();
-  arr.push({who:'you', text, ts: Date.now()});
+  const msgObj = { sender: localIdentity, text, ts: Date.now() };
+  arr.push(msgObj);
   saveMessages(arr);
   renderMessages(arr);
+  inputMsg.value = '';
+  // forward via datachannel
   if(dc && dc.readyState === 'open'){
-    try{ dc.send(JSON.stringify({type:'chat', text})); }catch(e){ console.warn(e); }
+    try { dc.send(JSON.stringify({ type:'chat', text, sender: localIdentity })); }
+    catch(e){ console.warn('dc send error', e); }
   }
 }
-function handlePeerChat(text){
+
+/* handle incoming peer chat */
+function handleIncomingPeerChat(obj){
+  if(!obj || !obj.text) return;
   const arr = loadMessages();
-  arr.push({who:'them', text, ts: Date.now()});
+  const msg = { sender: obj.sender || 'studyAdda', text: obj.text, ts: Date.now() };
+  arr.push(msg);
   saveMessages(arr);
   renderMessages(arr);
 }
 
-/* ===== Room and signaling UI ===== */
+/* clear chat now */
+clearChatBtn.addEventListener('click', ()=>{
+  if(!confirm('Clear chat messages for this session?')) return;
+  clearMessages();
+});
+
+/* ---------------- Room & Signaling ---------------- */
 joinBtn.addEventListener('click', ()=> {
   if(!unlocked){ alert('Unlock first'); return; }
   const room = (roomInput.value||'room1').trim();
   if(!room){ alert('Enter a room name'); return; }
   joinRoom(room);
 });
-leaveBtn.addEventListener('click', ()=> { leaveRoom(); });
+leaveBtn.addEventListener('click', leaveRoom);
 
-/* ===== WebSocket signaling (auto) ===== */
+function joinRoom(room){
+  currentRoom = room;
+  if(!ws || ws.readyState !== WebSocket.OPEN) connectWebSocket();
+  const trySend = setInterval(()=>{
+    if(ws && ws.readyState === WebSocket.OPEN){
+      clearInterval(trySend);
+      ws.send(JSON.stringify({ type:'join', room }));
+      connStatus.textContent = 'Joined room: ' + room;
+      connStatus.style.color = '#8fe';
+      leaveBtn.style.display = 'inline-block';
+      joinBtn.style.display = 'none';
+    }
+  }, 200);
+}
+function leaveRoom(){
+  if(ws && ws.readyState === WebSocket.OPEN && currentRoom){
+    ws.send(JSON.stringify({ type:'leave', room: currentRoom }));
+  }
+  cleanupPeer();
+  currentRoom = null;
+  connStatus.textContent = 'Left room';
+  connStatus.style.color = 'var(--muted)';
+  leaveBtn.style.display = 'none';
+  joinBtn.style.display = 'inline-block';
+}
 function connectWebSocket(){
   if(!SIGNALING_SERVER || SIGNALING_SERVER.includes('REPLACE_WITH_YOUR_SERVER_HOST')){
     connStatus.textContent = 'No signaling server configured';
     connStatus.style.color = 'orange';
     return;
   }
-  try{
+  try {
     ws = new WebSocket(SIGNALING_SERVER);
-  }catch(e){
+  } catch(e){
     connStatus.textContent = 'WebSocket error';
     connStatus.style.color = 'red';
     console.error(e);
     return;
   }
   connStatus.textContent = 'Connecting to signaling...';
-  ws.onopen = ()=>{ connStatus.textContent = 'Connected to signaling'; connStatus.style.color = '#8fe'; if(currentRoom) sendJoin(currentRoom); };
-  ws.onmessage = (ev)=> {
-    try{
+  ws.onopen = () => { connStatus.textContent = 'Connected to signaling'; connStatus.style.color = '#8fe'; if(currentRoom) ws.send(JSON.stringify({ type:'join', room: currentRoom })); };
+  ws.onmessage = (ev) => {
+    try {
       const msg = JSON.parse(ev.data);
       if(msg.type === 'peer-ready'){
+        // server indicates another peer present -> start offer
         if(!pc) createPeerConnectionAndOffer();
       } else if(msg.type === 'signal'){
         handleSignalingMessage(msg.data);
@@ -321,54 +441,30 @@ function connectWebSocket(){
       } else if(msg.type === 'peer-left'){
         p2pState.textContent = 'P2P: peer left';
       }
-    }catch(e){ console.warn('ws message parse', e); }
+    } catch(e){ console.warn('ws msg parse', e); }
   };
   ws.onclose = ()=>{ connStatus.textContent = 'Signaling disconnected'; connStatus.style.color = 'orange'; };
   ws.onerror = (e)=>{ connStatus.textContent = 'Signaling error'; connStatus.style.color = 'red'; console.error(e); };
 }
-function sendJoin(room){
-  currentRoom = room;
-  if(!ws || ws.readyState !== WebSocket.OPEN){ connectWebSocket(); }
-  const trySend = setInterval(()=>{
-    if(ws && ws.readyState === WebSocket.OPEN){
-      clearInterval(trySend);
-      ws.send(JSON.stringify({type:'join', room}));
-      connStatus.textContent = 'Joined room: ' + room;
-      connStatus.style.color = '#8fe';
-      leaveBtn.classList.remove('hidden');
-      joinBtn.classList.add('hidden');
-    }
-  },200);
-}
-function leaveRoom(){
-  if(ws && ws.readyState === WebSocket.OPEN && currentRoom){
-    ws.send(JSON.stringify({type:'leave', room: currentRoom}));
-  }
-  cleanupPeer();
-  currentRoom = null;
-  connStatus.textContent = 'Left room';
-  connStatus.style.color = 'var(--muted)';
-  leaveBtn.classList.add('hidden');
-  joinBtn.classList.remove('hidden');
-}
 function sendSignal(data){
   if(ws && ws.readyState === WebSocket.OPEN && currentRoom){
-    ws.send(JSON.stringify({type:'signal', room: currentRoom, data}));
+    ws.send(JSON.stringify({ type:'signal', room: currentRoom, data }));
   }
 }
 
-/* ===== WebRTC P2P functions ===== */
+/* ---------------- WebRTC functions ---------------- */
 async function createPeerConnectionAndOffer(){
   cleanupPeer();
-  pc = new RTCPeerConnection({iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]});
+  pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
   dc = pc.createDataChannel('study-chat');
   setupDataChannel(dc);
-  pc.onicecandidate = (ev) => { if(ev.candidate) sendSignal({candidate: ev.candidate}); };
-  pc.onconnectionstatechange = ()=> { p2pState.textContent = 'P2P: ' + pc.connectionState; };
+  pc.onicecandidate = (ev) => { if(ev.candidate) sendSignal({ candidate: ev.candidate }); };
+  pc.onconnectionstatechange = () => { p2pState.textContent = 'P2P: ' + pc.connectionState; };
   const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
-  sendSignal({sdp: pc.localDescription});
+  sendSignal({ sdp: pc.localDescription });
 }
+
 async function handleSignalingMessage(data){
   if(data.sdp){
     const desc = data.sdp;
@@ -380,51 +476,59 @@ async function handleSignalingMessage(data){
     }
   }
   if(data.candidate){
-    if(pc) {
-      try{ await pc.addIceCandidate(data.candidate); }catch(e){ console.warn('ice add error', e); }
+    if(pc){
+      try { await pc.addIceCandidate(data.candidate); } catch(e){ console.warn('ice add error', e); }
     }
   }
 }
+
 async function createPeerConnectionAsCallee(offerDesc){
   cleanupPeer();
-  pc = new RTCPeerConnection({iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]});
+  pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
   pc.ondatachannel = (ev) => { dc = ev.channel; setupDataChannel(dc); };
-  pc.onicecandidate = (ev)=> { if(ev.candidate) sendSignal({candidate: ev.candidate}); };
-  pc.onconnectionstatechange = ()=> { p2pState.textContent = 'P2P: ' + pc.connectionState; };
+  pc.onicecandidate = (ev) => { if(ev.candidate) sendSignal({ candidate: ev.candidate }); };
+  pc.onconnectionstatechange = () => { p2pState.textContent = 'P2P: ' + pc.connectionState; };
   await pc.setRemoteDescription(offerDesc);
   const answer = await pc.createAnswer();
   await pc.setLocalDescription(answer);
-  sendSignal({sdp: pc.localDescription});
+  sendSignal({ sdp: pc.localDescription });
 }
+
 function setupDataChannel(channel){
-  channel.onopen = ()=> { p2pState.textContent = 'P2P: open'; alert('P2P channel open — you can chat now'); };
-  channel.onmessage = (ev)=> {
-    try{
-      const obj = JSON.parse(ev.data);
-      if(obj.type === 'chat' && obj.text){ handlePeerChat(obj.text); }
-    }catch(e){ console.warn('dc msg parse', e); }
+  channel.onopen = () => {
+    p2pState.textContent = 'P2P: open';
+    alert('P2P channel open — you can chat now');
   };
-  channel.onclose = ()=> { p2pState.textContent = 'P2P: closed'; };
-  channel.onerror = (e)=> console.error('dc error', e);
+  channel.onmessage = (ev) => {
+    try {
+      const obj = JSON.parse(ev.data);
+      if(obj.type === 'chat') handleIncomingPeerChat(obj);
+    } catch(e){ console.warn('dc msg parse', e); }
+  };
+  channel.onclose = () => { p2pState.textContent = 'P2P: closed'; };
+  channel.onerror = (e) => console.error('dc error', e);
 }
+
 function cleanupPeer(){
-  if(dc){ try{ dc.close(); }catch(e){} dc=null; }
-  if(pc){ try{ pc.close(); }catch(e){} pc=null; }
+  if(dc){ try{ dc.close(); } catch(e){} dc = null; }
+  if(pc){ try{ pc.close(); } catch(e){} pc = null; }
   p2pState.textContent = 'P2P: not connected';
 }
 
-/* ===== Init & cleanup ===== */
+/* ---------------- Init & cleanup ---------------- */
 (function init(){
+  // start with overlay visible
   lockedOverlay.style.display = 'flex';
-  mainFrame.classList.add('hidden');
-  // hide pdf until unlocked
-  pdfFrame.classList.add('hidden');
-  pdfFallback.classList.add('hidden');
-  // load fallback link click safety
-  if(openPdfLink) openPdfLink.addEventListener('click', ()=> {});
+  // hide pdf before unlock
+  pdfFrame.style.display = 'none';
+  // ensure overlay button focus behavior
+  openDiscussionsBtn.addEventListener('touchstart', ()=> {}); // aids mobile responsiveness
 })();
-window.addEventListener('beforeunload', ()=> { try{ sessionStorage.removeItem(STORAGE_KEY); }catch(e){} if(pc) try{ pc.close(); }catch(e){} if(ws) try{ ws.close(); }catch(e){} });
-
+window.addEventListener('beforeunload', ()=> {
+  try{ sessionStorage.removeItem(STORAGE_KEY); } catch(e){}
+  if(pc) try{ pc.close(); } catch(e){}
+  if(ws) try{ ws.close(); } catch(e){}
+});
 </script>
 </body>
 </html>
