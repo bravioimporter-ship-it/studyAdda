@@ -3,465 +3,403 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Study Vault — Economics (Stable Chat + Typing)</title>
+<title>Study Vault — Economics (Mobile fixed)</title>
 <style>
 :root{
   --bg:#071025; --card:#0a1220; --muted:#9aa6bf; --accent:#38bdf8; --accent-2:#7dd3fc;
-  --glass: rgba(255,255,255,0.04); --radius:12px; font-family:Inter,system-ui,Arial;
+  --glass: rgba(255,255,255,0.04); --radius:12px; font-family:Inter,system-ui,Arial,Helvetica;
+  --max-width:1100px;
 }
 *{box-sizing:border-box}
-html,body{height:100%;margin:0;background:linear-gradient(180deg,#071025,#041029);color:#e6eef8}
-.app{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:14px}
-.container{width:1100px;max-width:100%;border-radius:var(--radius);overflow:hidden;box-shadow:0 18px 40px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.008))}
-.header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.03)}
-.title{display:flex;flex-direction:column}
+html,body{height:100%;margin:0;background:linear-gradient(180deg,#071025,#041029);color:#e6eef8;-webkit-font-smoothing:antialiased}
+body.locked{overflow:hidden} /* prevent background scroll when locked */
+
+.appWrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:12px}
+.container{width:var(--max-width);max-width:100%;border-radius:var(--radius);overflow:hidden;box-shadow:0 18px 40px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.008))}
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.03)}
 .title h1{margin:0;font-size:18px}
 .title p{margin:0;color:var(--muted);font-size:13px}
 
-/* layout */
-.main{display:grid;grid-template-columns:420px 1fr;gap:0}
-.left{padding:12px;border-right:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg, rgba(8,16,28,0.6), rgba(4,8,16,0.55))}
-.right{padding:12px;display:flex;flex-direction:column;gap:12px;background:linear-gradient(180deg, rgba(1,6,14,0.35), rgba(2,8,16,0.3))}
+/* main layout */
+.mainGrid{display:grid;grid-template-columns:420px 1fr;gap:0}
+.leftCol{padding:12px;border-right:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg, rgba(8,16,28,0.6), rgba(4,8,16,0.55))}
+.rightCol{padding:12px;display:flex;flex-direction:column;gap:12px;background:linear-gradient(180deg, rgba(1,6,14,0.35), rgba(2,8,16,0.3))}
 
-/* pdf viewer */
-.pdfwrap{position:relative;background:var(--glass);border-radius:10px;height:74vh;min-height:420px;overflow:hidden;display:flex;flex-direction:column}
-.pdfframe{flex:1;width:100%;height:100%;border:0;background:#fff;display:block}
-.pdf-overlay{position:absolute;left:0;right:0;bottom:0;padding:10px;background:linear-gradient(180deg,rgba(3,6,10,0.00),rgba(3,6,10,0.6));display:flex;justify-content:center;pointer-events:none}
-.open-btn{pointer-events:auto;border:0;padding:12px 18px;border-radius:10px;background:linear-gradient(90deg,var(--accent-2),var(--accent));color:#012;font-weight:800;width:100%;max-width:420px;box-shadow:0 10px 24px rgba(56,189,248,0.12)}
-.pdf-fallback{padding:12px;color:var(--muted);display:flex;flex-direction:column;gap:8px}
+/* PDF viewer */
+.pdfWrap{position:relative;background:var(--glass);border-radius:10px;height:72vh;min-height:360px;overflow:hidden;display:flex;flex-direction:column}
+.pdfIframe{flex:1;width:100%;height:100%;border:0;background:#fff;display:block}
+.pdfFallback{padding:12px;color:var(--muted);display:flex;flex-direction:column;gap:8px}
+.pdfOverlay{position:absolute;left:0;right:0;bottom:0;padding:12px;background:linear-gradient(180deg,rgba(3,6,10,0.0),rgba(3,6,10,0.7));display:flex;justify-content:center;pointer-events:none;z-index:20}
+.openBtn{pointer-events:auto;border:0;padding:14px 18px;border-radius:14px;background:linear-gradient(90deg,var(--accent-2),var(--accent));color:#012;font-weight:800;font-size:16px;width:100%;max-width:420px;box-shadow:0 12px 28px rgba(56,189,248,0.12)}
+.openBtn:active{transform:translateY(1px)}
+.note{color:var(--muted);font-size:13px;margin-top:10px}
 
-/* right / chat */
+/* chat */
 .panel{background:rgba(255,255,255,0.01);padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.02)}
-.status{font-size:13px;color:var(--muted)}
-.chat{display:flex;flex-direction:column;gap:8px;height:66vh;min-height:420px}
-.msgs{flex:1;overflow:auto;padding:12px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));border:1px solid rgba(255,255,255,0.02)}
-.msg{display:inline-block;margin-bottom:10px;max-width:82%;line-height:1.3}
-.msg.you{align-self:flex-end;background:linear-gradient(90deg,#08304a,#074b66);padding:10px 12px;border-radius:12px 12px 6px 12px;box-shadow:0 6px 18px rgba(3,10,18,0.6)}
-.msg.them{align-self:flex-start;background:linear-gradient(90deg,#0b2b1a,#0c3c28);padding:10px 12px;border-radius:12px 12px 12px 6px;box-shadow:0 6px 18px rgba(3,10,18,0.6)}
-.msg small{display:block;margin-top:6px;font-size:12px;color:var(--muted)}
-.typing{font-size:13px;color:var(--muted);padding:6px 8px}
+.chatBox{display:flex;flex-direction:column;height:66vh;min-height:360px}
+.msgs{flex:1;overflow:auto;padding:12px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));border:1px solid rgba(255,255,255,0.02);display:flex;flex-direction:column;gap:10px}
+.msg{display:block;padding:10px 12px;border-radius:12px;max-width:100%;word-break:break-word;line-height:1.35}
+.msg.you{align-self:flex-end;background:linear-gradient(90deg,#08304a,#074b66);color:#e6f7ff;border-radius:12px 12px 6px 12px;text-align:right}
+.msg.them{align-self:flex-start;background:linear-gradient(90deg,#0b2b1a,#0c3c28);color:#e7fbf0;border-radius:12px 12px 12px 6px;text-align:left}
+.msg small{display:block;margin-top:6px;font-size:12px;color:var(--muted);opacity:0.95}
 
-/* composer */
-.compose{display:flex;gap:8px;align-items:center}
-.compose input{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:15px}
-.compose button{padding:12px 14px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent-2),var(--accent));color:#012;font-weight:700}
+/* typing indicator */
+.typing{font-size:13px;color:var(--muted);padding:6px 10px}
 
-/* room row & small controls */
+/* composer (stick to bottom, visible) */
+.composer{display:flex;gap:8px;align-items:center;margin-top:8px}
+.composer input{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:15px;outline:none}
+.composer button{padding:12px 14px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent-2),var(--accent));color:#012;font-weight:700}
+
+/* controls */
 .row{display:flex;gap:8px;align-items:center}
 .row input{padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
-.smallbtn{padding:8px 10px;border-radius:8px;border:1px dashed rgba(255,255,255,0.03);background:transparent;color:var(--muted)}
+.smallBtn{padding:8px 10px;border-radius:8px;border:1px dashed rgba(255,255,255,0.03);background:transparent;color:var(--muted)}
 
-/* locked overlay (completely blocks & hide main until correct) */
-.locked-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(0deg,rgba(1,2,6,0.75),rgba(1,2,6,0.75));z-index:9999}
-.lockbox{width:420px;max-width:94%;background:#07111a;padding:18px;border-radius:12px;box-shadow:0 18px 40px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.03)}
-.lockbox h2{margin:0 0 8px 0}
-.pw{display:flex;gap:8px;margin-top:12px}
-.pw input{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:16px}
+/* locked overlay */
+.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(0deg,rgba(1,2,6,0.85),rgba(1,2,6,0.85));z-index:9999}
+.lockCard{width:420px;max-width:94%;background:#07111a;padding:18px;border-radius:12px;box-shadow:0 26px 60px rgba(0,0,0,0.65);border:1px solid rgba(255,255,255,0.03)}
+.lockCard h2{margin:0 0 8px 0}
+.pwRow{display:flex;gap:8px;margin-top:12px}
+.pwRow input{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:16px}
+.pwRow button{padding:12px 14px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent-2),var(--accent));color:#012;font-weight:700}
 
-/* responsive */
-@media (max-width:920px){
-  .main{grid-template-columns:1fr}
-  .pdfwrap{height:62vh}
-  .chat{height:40vh;min-height:220px}
-  .title h1{font-size:16px}
-  .compose input{padding:14px}
-  .pw input{padding:14px}
-}
-@media (max-width:420px){
-  .pdfwrap{height:56vh}
-  .open-btn{padding:12px;font-size:15px;border-radius:10px}
-  .compose input{font-size:15px;padding:12px}
-}
+/* ensure header and content hidden until unlock */
 .hidden{display:none!important}
+
+/* responsive: stack layout and larger touch targets */
+@media (max-width:920px){
+  .mainGrid{grid-template-columns:1fr}
+  .pdfWrap{height:60vh}
+  .chatBox{height:45vh}
+  .openBtn{font-size:15px;padding:14px}
+  .composer input{padding:14px}
+  .pwRow input{padding:14px}
+}
+
+/* very small screens */
+@media (max-width:420px){
+  .pdfWrap{height:56vh}
+  .openBtn{font-size:15px;padding:12px;border-radius:12px}
+  .container{border-radius:10px}
+}
 </style>
 </head>
-<body>
-<div class="app">
-  <!-- everything hidden until unlocked: we will keep container hidden until passcode accepted -->
+<body class="locked">
+<div class="appWrap">
   <div class="container hidden" id="appContainer" aria-hidden="true">
     <div class="header">
       <div class="title">
         <h1>Study Vault — Economics</h1>
         <p>Private study chat — enter passcode to unlock</p>
       </div>
-      <div id="connStatus" class="status">Disconnected</div>
+      <div id="connStatus" class="status" style="color:var(--muted)">Disconnected</div>
     </div>
 
-    <div class="main">
-      <section class="left">
-        <div class="pdfwrap" id="pdfWrap" aria-live="polite">
-          <iframe id="pdfFrame" class="pdfframe" title="Document preview" aria-label="Document preview"></iframe>
+    <div class="mainGrid">
+      <!-- left: PDF -->
+      <div class="leftCol">
+        <div class="pdfWrap" id="pdfWrap">
+          <iframe id="pdfFrame" class="pdfIframe" title="Document preview" aria-label="Document preview"></iframe>
 
-          <div id="pdfFallback" class="pdf-fallback hidden">
+          <div id="pdfFallback" class="pdfFallback hidden">
             <div><strong>PDF preview unavailable in this browser.</strong></div>
             <div style="color:var(--muted)">Open the PDF in a new tab:</div>
-            <a id="openPdfLink" href="Economics-SQP.pdf" target="_blank" rel="noopener">Open Economics-SQP.pdf</a>
+            <a href="Economics-SQP.pdf" target="_blank" rel="noopener" style="color:var(--accent)">Open Economics-SQP.pdf</a>
           </div>
 
-          <div class="pdf-overlay">
-            <button id="openDiscussionsBtn" class="open-btn">Open discussions</button>
+          <div class="pdfOverlay">
+            <button id="openDiscussions" class="openBtn">Open discussions</button>
           </div>
         </div>
+        <div class="note">Tip: passcodes — <strong>2511</strong> = You, <strong>2809</strong> = studyAdda</div>
+      </div>
 
-        <div style="margin-top:10px;color:var(--muted)">Tip: passcodes — <strong>2511</strong> = You, <strong>2809</strong> = studyAdda</div>
-      </section>
-
-      <section class="right">
+      <!-- right: Chat -->
+      <div class="rightCol">
         <div class="panel" style="display:flex;justify-content:space-between;align-items:center">
           <div>
             <strong>Connection</strong>
-            <div style="color:var(--muted);font-size:13px;margin-top:6px">Auto signaling + WebRTC P2P. Both users join the same room to connect.</div>
+            <div style="color:var(--muted);font-size:13px;margin-top:6px">Auto signaling + WebRTC P2P. Join same room to connect.</div>
           </div>
-          <div class="status" id="p2pState">P2P: not connected</div>
+          <div id="p2pState" class="status" style="color:var(--muted)">P2P: not connected</div>
         </div>
 
-        <div class="panel chat" id="chatPanel" aria-live="polite">
+        <div class="panel chatBox" id="chatPanel">
           <div style="display:flex;justify-content:space-between;align-items:center">
             <div><strong>Discussion</strong> <span style="color:var(--muted);font-size:12px">— studyAdda</span></div>
             <div style="display:flex;gap:8px;align-items:center">
-              <button id="clearChat" class="smallbtn" title="Clear session messages">Clear</button>
+              <button id="clearBtn" class="smallBtn" title="Clear session messages">Clear</button>
               <div style="font-size:12px;color:var(--muted)">Session only</div>
             </div>
           </div>
 
-          <div id="msgsContainer" class="msgs" role="log" aria-live="polite"></div>
+          <div id="msgs" class="msgs" role="log" aria-live="polite"></div>
 
-          <div id="typingIndicator" class="typing" style="display:none"></div>
+          <div id="typing" class="typing hidden"></div>
 
-          <div class="compose">
-            <input id="inputMsg" type="text" placeholder="Type a message..." autocomplete="off" />
-            <button id="sendBtn">Send</button>
+          <div class="composer" id="composerRow">
+            <input id="input" type="text" placeholder="Type a message..." autocomplete="off" />
+            <button id="send" aria-label="Send message">Send</button>
           </div>
 
           <div class="panel" style="margin-top:8px">
             <div class="row">
               <div style="font-size:13px;color:var(--muted);margin-right:6px">Room:</div>
-              <input id="roomInput" placeholder="room1" value="room1" />
-              <button id="joinBtn" class="smallbtn">Join</button>
-              <button id="leaveBtn" class="smallbtn hidden">Leave</button>
+              <input id="room" value="room1" />
+              <button id="join" class="smallBtn">Join</button>
+              <button id="leave" class="smallBtn hidden">Leave</button>
             </div>
           </div>
-        </div>
 
-      </section>
+        </div>
+      </div>
     </div>
 
-    <footer style="padding:12px 16px;border-top:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;font-size:12px;color:var(--muted)">
-      <div>Built for private study chats — messages vanish when tab closed.</div>
+    <footer style="padding:12px;border-top:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;font-size:12px;color:var(--muted)">
+      <div>Built for private study chats — messages vanish on close.</div>
       <div>Document preview uses your uploaded file.</div>
     </footer>
   </div>
 </div>
 
-<!-- Locked overlay (blocks everything) -->
-<div class="locked-screen" id="lockedScreen" role="dialog" aria-modal="true">
-  <div class="lockbox">
-    <h2>Enter passcode to unlock</h2>
-    <div style="color:var(--muted);font-size:13px;margin-top:6px">Enter 4-digit passcode. Use <strong>2809</strong> to enter as <em>studyAdda</em>.</div>
-    <div class="pw">
-      <input id="pwInput" type="password" placeholder="Enter passcode" inputmode="numeric" />
-      <button id="pwBtn" class="smallbtn">Unlock</button>
+<!-- passcode overlay (blocks everything, centered, no top gap) -->
+<div class="overlay" id="overlay">
+  <div class="lockCard" role="dialog" aria-modal="true" aria-labelledby="lockTitle">
+    <h2 id="lockTitle">Enter passcode</h2>
+    <div style="color:var(--muted);margin-top:6px">Enter 4-digit passcode. Use <strong>2809</strong> to enter as <em>studyAdda</em>.</div>
+    <div class="pwRow" style="margin-top:12px">
+      <input id="pass" type="password" placeholder="Passcode" inputmode="numeric" />
+      <button id="unlockBtn">Unlock</button>
     </div>
-    <div style="margin-top:12px;color:var(--muted);font-size:13px">After unlocking the document will load; use the button at the bottom of the document to open discussions.</div>
+    <div style="margin-top:12px;color:var(--muted);font-size:13px">After unlocking the document loads. Tap <strong>Open discussions</strong> to view chat.</div>
   </div>
 </div>
 
 <script>
-/* ---------------- CONFIG ---------------- */
-const SIGNALING_SERVER = 'wss://study-vault-signal.onrender.com'; // your Render URL
+/* ---------- config ---------- */
+const SIGNALING_SERVER = 'wss://study-vault-signal.onrender.com'; // keep your render wss URL
 const PASS_NORMAL = '2511';
 const PASS_STUDYADDA = '2809';
-const STORAGE_KEY = 'study_chat_final_v1';
+const STORAGE_KEY = 'study_chat_mobile_fix_v1';
 
-/* ---------------- DOM ---------------- */
-const lockedScreen = document.getElementById('lockedScreen');
-const pwInput = document.getElementById('pwInput');
-const pwBtn = document.getElementById('pwBtn');
+/* ---------- elements ---------- */
+const body = document.body;
+const overlay = document.getElementById('overlay');
+const passInput = document.getElementById('pass');
+const unlockBtn = document.getElementById('unlockBtn');
 const appContainer = document.getElementById('appContainer');
 const pdfFrame = document.getElementById('pdfFrame');
 const pdfFallback = document.getElementById('pdfFallback');
-const openDiscussionsBtn = document.getElementById('openDiscussionsBtn');
+const openDiscussions = document.getElementById('openDiscussions');
 
-const inputMsg = document.getElementById('inputMsg');
-const sendBtn = document.getElementById('sendBtn');
-const msgsContainer = document.getElementById('msgsContainer');
-const typingIndicator = document.getElementById('typingIndicator');
-const clearChat = document.getElementById('clearChat');
-const joinBtn = document.getElementById('joinBtn');
-const leaveBtn = document.getElementById('leaveBtn');
-const roomInput = document.getElementById('roomInput');
-const connStatus = document.getElementById('connStatus');
+const msgs = document.getElementById('msgs');
+const sendBtn = document.getElementById('send');
+const inputField = document.getElementById('input');
+const joinBtn = document.getElementById('join');
+const leaveBtn = document.getElementById('leave');
+const roomInput = document.getElementById('room');
+const typingDiv = document.getElementById('typing');
 const p2pState = document.getElementById('p2pState');
+const connStatus = document.getElementById('connStatus');
+const clearBtn = document.getElementById('clearBtn');
 
-let localIdentity = 'You'; // becomes 'studyAdda' if unlocking with PASS_STUDYADDA
+/* ---------- state ---------- */
+let localName = 'You';
 let unlocked = false;
+let ws = null, pc = null, dc = null, currentRoom = null;
+let typingTimer = null, isTyping=false, remoteTypingTimer=null;
+const TYPING_DEBOUNCE = 800;
 
-/* WebRTC + signaling state */
-let ws = null;
-let pc = null;
-let dc = null;
-let currentRoom = null;
-
-/* typing debounce */
-let typingTimer = null;
-let isTyping = false;
-const TYPING_DEBOUNCE = 800; // ms
-
-/* sample messages */
-const sampleMessages = [
-  { sender:'studyAdda', text:'Hey — I read the sample paper about fiscal consolidation.', ts: Date.now()-1000*60*20 },
-  { sender:'You', text:"Yes — there's a good point about tax receipts helping the deficit.", ts: Date.now()-1000*60*18 }
+/* ---------- sample messages ---------- */
+const sample = [
+  {sender:'studyAdda', text:'Hey — I read the sample paper about fiscal consolidation.', ts: Date.now()-1000*60*20},
+  {sender:'You', text:"Yes — there's a good point about tax receipts helping the deficit.", ts: Date.now()-1000*60*18}
 ];
 
-/* ---------------- utility ---------------- */
-function escapeHtml(s){ return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
-function loadMessages(){ const raw = sessionStorage.getItem(STORAGE_KEY); if(!raw){ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sampleMessages)); return sampleMessages.slice(); } try{ const arr=JSON.parse(raw); return Array.isArray(arr)?arr:[] }catch(e){ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sampleMessages)); return sampleMessages.slice(); } }
-function saveMessages(arr){ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
-function clearMessages(){ sessionStorage.removeItem(STORAGE_KEY); msgsContainer.innerHTML=''; }
+/* ---------- helpers: storage & rendering ---------- */
+function loadMsgs(){ const raw = sessionStorage.getItem(STORAGE_KEY); if(!raw){ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sample)); return sample.slice(); } try{ const arr=JSON.parse(raw); return Array.isArray(arr)?arr:[] }catch(e){ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sample)); return sample.slice(); } }
+function saveMsgs(arr){ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+function clearMsgs(){ sessionStorage.removeItem(STORAGE_KEY); msgs.innerHTML=''; }
 
-/* render messages */
-function renderMessages(arr){
-  msgsContainer.innerHTML = '';
+function renderAll(){
+  const arr = loadMsgs();
+  msgs.innerHTML = '';
   for(const m of arr){
-    const el = document.createElement('div');
-    el.className = 'msg ' + ((m.sender === localIdentity) ? 'you' : 'them');
-    el.innerHTML = '<div>' + escapeHtml(m.text) + '</div><small>' + escapeHtml(m.sender) + ' • ' + new Date(m.ts).toLocaleTimeString() + '</small>';
-    msgsContainer.appendChild(el);
+    const d = document.createElement('div');
+    d.className = 'msg ' + ((m.sender===localName)?'you':'them');
+    d.innerHTML = '<div>' + escapeHtml(m.text) + '</div><small>' + escapeHtml(m.sender) + ' • ' + new Date(m.ts).toLocaleTimeString() + '</small>';
+    msgs.appendChild(d);
   }
-  msgsContainer.scrollTop = msgsContainer.scrollHeight;
+  msgs.scrollTop = msgs.scrollHeight;
 }
+function addLocal(text){
+  const arr = loadMsgs();
+  const obj = { sender: localName, text, ts: Date.now() };
+  arr.push(obj); saveMsgs(arr); renderAll();
+}
+function addRemote(sender,text){
+  const arr = loadMsgs();
+  arr.push({ sender: sender||'studyAdda', text, ts: Date.now() });
+  saveMsgs(arr); renderAll();
+}
+function escapeHtml(s){ return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
 
-/* ---------------- unlock flow (completely hides content until correct) ---------------- */
-pwBtn.addEventListener('click', ()=> unlock(pwInput.value));
-pwInput.addEventListener('keydown', (e)=> { if(e.key === 'Enter') pwBtn.click(); });
+/* ---------- unlock flow ---------- */
+unlockBtn.addEventListener('click', doUnlock);
+passInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') doUnlock(); });
 
-function unlock(code){
-  if(code === PASS_NORMAL){
-    localIdentity = 'You';
-  } else if(code === PASS_STUDYADDA){
-    localIdentity = 'studyAdda';
-  } else {
-    alert('Incorrect passcode.');
-    return;
-  }
-  // reveal app container and load PDF
+function doUnlock(){
+  const v = passInput.value.trim();
+  if(!v) return alert('Enter passcode');
+  if(v === PASS_NORMAL) localName = 'You';
+  else if(v === PASS_STUDYADDA) localName = 'studyAdda';
+  else return alert('Incorrect passcode.');
+  // reveal app and load pdf
   unlocked = true;
-  lockedScreen.style.display = 'none';
+  overlay.style.display = 'none';
   appContainer.classList.remove('hidden');
   appContainer.setAttribute('aria-hidden','false');
-  // load pdf only now
+  document.body.classList.remove('locked');
+  // load pdf now
   pdfFrame.src = 'Economics-SQP.pdf#view=FitH';
   pdfFrame.style.display = 'block';
-  // check if embed works (some browsers disallow file://)
+  // pdf embed check
   let loaded = false;
-  pdfFrame.addEventListener('load', ()=> { pdfFallback.classList.add('hidden'); loaded = true; }, { once:true });
-  setTimeout(()=> { if(!loaded){ pdfFallback.classList.remove('hidden'); pdfFrame.style.display='none'; } }, 800);
-  connStatus.textContent = 'Unlocked';
-  connStatus.style.color = '#8fe';
+  pdfFrame.addEventListener('load', ()=> { pdfFallback.classList.add('hidden'); loaded=true; }, { once:true });
+  setTimeout(()=> { if(!loaded){ pdfFallback.classList.remove('hidden'); pdfFrame.style.display='none'; } }, 900);
+  // render existing messages
+  renderAll();
+  // focus small delay to allow mobile keyboard to behave
+  setTimeout(()=> inputField.focus(), 250);
 }
 
-/* ---------------- Open discussions (from bottom of pdf) ---------------- */
-openDiscussionsBtn.addEventListener('click', ()=> {
-  if(!unlocked){ alert('Unlock first'); return; }
-  // show chat: load messages
-  const arr = loadMessages();
-  renderMessages(arr);
-  // focus input for mobile
-  setTimeout(()=> inputMsg.focus(), 150);
+/* ---------- open discussions ---------- */
+openDiscussions.addEventListener('click', ()=> {
+  if(!unlocked) return alert('Unlock first');
+  renderAll();
+  inputField.focus();
 });
 
-/* ---------------- sending messages + forwarding via DataChannel ---------------- */
-sendBtn.addEventListener('click', sendMessage);
-inputMsg.addEventListener('keydown', (e)=> { if(e.key === 'Enter'){ sendMessage(); e.preventDefault(); } });
-
-function sendMessage(){
-  const text = inputMsg.value.trim();
-  if(!text) return;
-  const arr = loadMessages();
-  const obj = { sender: localIdentity, text, ts: Date.now() };
-  arr.push(obj); saveMessages(arr); renderMessages(arr);
-  inputMsg.value = '';
+/* ---------- send message ---------- */
+sendBtn.addEventListener('click', ()=> {
+  const t = inputField.value.trim(); if(!t) return;
+  addLocal(t); inputField.value='';
   // forward via datachannel
-  if(dc && dc.readyState === 'open'){
-    try{ dc.send(JSON.stringify({ type:'chat', sender: localIdentity, text })); }catch(e){ console.warn('dc send', e); }
-  }
-}
-
-/* ---------------- typing indicator: send typing events via dc ---------------- */
-inputMsg.addEventListener('input', ()=> {
-  if(!isTyping){
-    isTyping = true;
-    broadcastTyping(true);
-  }
-  clearTimeout(typingTimer);
-  typingTimer = setTimeout(()=> {
-    isTyping = false;
-    broadcastTyping(false);
-  }, TYPING_DEBOUNCE);
+  if(dc && dc.readyState === 'open'){ try{ dc.send(JSON.stringify({ type:'chat', sender: localName, text: t })); }catch(e){ console.warn(e); } }
 });
+inputField.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ sendBtn.click(); e.preventDefault(); } });
 
-function broadcastTyping(flag){
-  // show local user's typing state locally? (we mostly show remote typing to user)
+/* ---------- typing indicator ---------- */
+inputField.addEventListener('input', ()=> {
+  if(!isTyping){ isTyping=true; sendTyping(true); }
+  clearTimeout(typingTimer);
+  typingTimer = setTimeout(()=>{ isTyping=false; sendTyping(false); }, TYPING_DEBOUNCE);
+});
+function sendTyping(flag){
   if(dc && dc.readyState === 'open'){
-    try{ dc.send(JSON.stringify({ type:'typing', sender: localIdentity, typing: !!flag })); }catch(e){}
+    try{ dc.send(JSON.stringify({ type:'typing', sender: localName, typing: !!flag })); }catch(e){}
   }
 }
-
-/* show remote typing state */
-let remoteTypingTimeout = null;
 function showRemoteTyping(name, flag){
   if(flag){
-    typingIndicator.style.display = 'block';
-    typingIndicator.textContent = name + ' is typing...';
-    if(remoteTypingTimeout) clearTimeout(remoteTypingTimeout);
-    remoteTypingTimeout = setTimeout(()=> { typingIndicator.style.display = 'none'; }, TYPING_DEBOUNCE + 500);
+    typingDiv.classList.remove('hidden'); typingDiv.textContent = name + ' is typing...';
+    if(remoteTypingTimer) clearTimeout(remoteTypingTimer);
+    remoteTypingTimer = setTimeout(()=> { typingDiv.classList.add('hidden'); }, TYPING_DEBOUNCE + 200);
   } else {
-    typingIndicator.style.display = 'none';
-    if(remoteTypingTimeout) { clearTimeout(remoteTypingTimeout); remoteTypingTimeout = null; }
+    typingDiv.classList.add('hidden'); if(remoteTypingTimer){ clearTimeout(remoteTypingTimer); remoteTypingTimer=null; }
   }
 }
 
-/* ---------------- clear chat button ---------------- */
-clearChat.addEventListener('click', ()=> {
-  if(!confirm('Clear chat messages for this session?')) return;
-  clearMessages();
-});
+/* ---------- clear chat ---------- */
+clearBtn.addEventListener('click', ()=> { if(!confirm('Clear session messages?')) return; clearMsgs(); });
 
-/* ---------------- Room & signaling ---------------- */
+/* ---------- signaling & WebRTC ---------- */
 joinBtn.addEventListener('click', ()=> {
-  if(!unlocked){ alert('Unlock first'); return; }
-  const room = (roomInput.value || 'room1').trim();
-  if(!room){ alert('Enter a room name'); return; }
-  joinRoom(room);
-});
-leaveBtn.addEventListener('click', ()=> leaveRoom());
-
-function joinRoom(room){
+  if(!unlocked) return alert('Unlock first');
+  const room = (roomInput.value||'room1').trim(); if(!room) return alert('Enter a room');
   currentRoom = room;
-  if(!ws || ws.readyState !== WebSocket.OPEN) connectWebSocket();
-  const trySend = setInterval(()=> {
-    if(ws && ws.readyState === WebSocket.OPEN){
-      clearInterval(trySend);
-      ws.send(JSON.stringify({ type:'join', room }));
-      connStatus.textContent = 'Joined room: ' + room; connStatus.style.color = '#8fe';
-      leaveBtn.classList.remove('hidden'); joinBtn.classList.add('hidden');
-    }
-  }, 200);
-}
-function leaveRoom(){
-  if(ws && ws.readyState === WebSocket.OPEN && currentRoom) ws.send(JSON.stringify({ type:'leave', room: currentRoom }));
-  cleanupPeer();
-  currentRoom = null; connStatus.textContent = 'Left room'; connStatus.style.color = 'var(--muted)';
-  leaveBtn.classList.add('hidden'); joinBtn.classList.remove('hidden');
-}
+  if(!ws || ws.readyState !== WebSocket.OPEN) connectWS();
+  const waiter = setInterval(()=>{ if(ws && ws.readyState===WebSocket.OPEN){ clearInterval(waiter); ws.send(JSON.stringify({ type:'join', room })); connStatus.textContent='Joined room: '+room; connStatus.style.color='#8fe'; joinBtn.classList.add('hidden'); leaveBtn.classList.remove('hidden'); } },200);
+});
+leaveBtn.addEventListener('click', ()=> { if(ws && ws.readyState===WebSocket.OPEN && currentRoom) ws.send(JSON.stringify({ type:'leave', room: currentRoom })); cleanup(); currentRoom=null; connStatus.textContent='Left room'; connStatus.style.color='var(--muted)'; leaveBtn.classList.add('hidden'); joinBtn.classList.remove('hidden'); });
 
-function connectWebSocket(){
-  if(!SIGNALING_SERVER || SIGNALING_SERVER.includes('REPLACE_WITH_YOUR_SERVER_HOST')){
-    connStatus.textContent = 'No signaling server configured'; connStatus.style.color = 'orange'; return;
-  }
-  try{ ws = new WebSocket(SIGNALING_SERVER); } catch(e){ connStatus.textContent = 'WebSocket error'; connStatus.style.color='red'; console.error(e); return; }
+function connectWS(){
+  if(!SIGNALING_SERVER || SIGNALING_SERVER.includes('REPLACE_WITH_YOUR_SERVER_HOST')){ connStatus.textContent='No signaling server configured'; connStatus.style.color='orange'; return; }
+  try{ ws = new WebSocket(SIGNALING_SERVER); } catch(e){ connStatus.textContent='WebSocket error'; connStatus.style.color='red'; console.error(e); return; }
   connStatus.textContent = 'Connecting to signaling...';
-  ws.onopen = ()=> { connStatus.textContent = 'Connected to signaling'; connStatus.style.color = '#8fe'; if(currentRoom) ws.send(JSON.stringify({ type:'join', room: currentRoom })); };
+  ws.onopen = ()=> { connStatus.textContent='Connected to signaling'; connStatus.style.color='#8fe'; if(currentRoom) ws.send(JSON.stringify({ type:'join', room: currentRoom })); };
   ws.onmessage = (ev)=> {
     try{
       const msg = JSON.parse(ev.data);
-      if(msg.type === 'peer-ready'){
-        if(!pc) createPeerConnectionAndOffer();
-      } else if(msg.type === 'signal'){
-        handleSignalingMessage(msg.data);
-      } else if(msg.type === 'joined-ack'){
-        connStatus.textContent = 'Joined room: ' + msg.room; connStatus.style.color = '#8fe';
-      } else if(msg.type === 'peer-left'){
-        p2pState.textContent = 'P2P: peer left';
-      }
+      if(msg.type==='peer-ready'){ if(!pc) createOffer(); }
+      else if(msg.type==='signal'){ handleSignal(msg.data); }
+      else if(msg.type==='joined-ack'){ connStatus.textContent = 'Joined room: '+msg.room; connStatus.style.color='#8fe'; }
+      else if(msg.type==='peer-left'){ p2pState.textContent='P2P: peer left'; }
     } catch(e){ console.warn('ws parse', e); }
   };
-  ws.onclose = ()=> { connStatus.textContent = 'Signaling disconnected'; connStatus.style.color='orange'; };
-  ws.onerror = (e)=> { connStatus.textContent = 'Signaling error'; connStatus.style.color='red'; console.error(e); };
-}
-function sendSignal(data){
-  if(ws && ws.readyState === WebSocket.OPEN && currentRoom){
-    ws.send(JSON.stringify({ type:'signal', room: currentRoom, data }));
-  }
+  ws.onclose = ()=> { connStatus.textContent='Signaling disconnected'; connStatus.style.color='orange'; };
+  ws.onerror = (e)=> { connStatus.textContent='Signaling error'; connStatus.style.color='red'; console.error(e); };
 }
 
-/* ---------------- WebRTC functions ---------------- */
-async function createPeerConnectionAndOffer(){
+function sendSignal(data){ if(ws && ws.readyState===WebSocket.OPEN && currentRoom) ws.send(JSON.stringify({ type:'signal', room: currentRoom, data })); }
+
+/* WebRTC */
+async function createOffer(){
   cleanupPeer();
-  pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
-  dc = pc.createDataChannel('study-chat');
-  setupDataChannel(dc);
+  pc = new RTCPeerConnection({ iceServers:[{ urls:'stun:stun.l.google.com:19302' }] });
+  dc = pc.createDataChannel('study-chat'); setUpDC(dc);
   pc.onicecandidate = (ev)=> { if(ev.candidate) sendSignal({ candidate: ev.candidate }); };
-  pc.onconnectionstatechange = ()=> { p2pState.textContent = 'P2P: ' + pc.connectionState; };
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  sendSignal({ sdp: pc.localDescription });
+  pc.onconnectionstatechange = ()=> { p2pState.textContent = 'P2P: '+pc.connectionState; };
+  const offer = await pc.createOffer(); await pc.setLocalDescription(offer); sendSignal({ sdp: pc.localDescription });
 }
-async function handleSignalingMessage(data){
+async function handleSignal(data){
   if(data.sdp){
     const desc = data.sdp;
-    if(desc.type === 'offer'){ await createPeerConnectionAsCallee(desc); }
-    else if(desc.type === 'answer'){ if(!pc) return; await pc.setRemoteDescription(desc); }
+    if(desc.type==='offer') await createAnswer(desc);
+    else if(desc.type==='answer'){ if(!pc) return; await pc.setRemoteDescription(desc); }
   }
-  if(data.candidate){
-    if(pc){
-      try{ await pc.addIceCandidate(data.candidate); } catch(e){ console.warn('ice error', e); }
-    }
-  }
+  if(data.candidate){ if(pc){ try{ await pc.addIceCandidate(data.candidate); }catch(e){ console.warn('ice', e); } } }
 }
-async function createPeerConnectionAsCallee(offerDesc){
+async function createAnswer(offerDesc){
   cleanupPeer();
-  pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
-  pc.ondatachannel = (ev)=> { dc = ev.channel; setupDataChannel(dc); };
+  pc = new RTCPeerConnection({ iceServers:[{ urls:'stun:stun.l.google.com:19302' }] });
+  pc.ondatachannel = (ev)=> { dc = ev.channel; setUpDC(dc); };
   pc.onicecandidate = (ev)=> { if(ev.candidate) sendSignal({ candidate: ev.candidate }); };
-  pc.onconnectionstatechange = ()=> { p2pState.textContent = 'P2P: ' + pc.connectionState; };
+  pc.onconnectionstatechange = ()=> { p2pState.textContent = 'P2P: '+pc.connectionState; };
   await pc.setRemoteDescription(offerDesc);
-  const answer = await pc.createAnswer(); await pc.setLocalDescription(answer);
-  sendSignal({ sdp: pc.localDescription });
+  const answer = await pc.createAnswer(); await pc.setLocalDescription(answer); sendSignal({ sdp: pc.localDescription });
 }
-
-/* DataChannel handlers */
-function setupDataChannel(channel){
-  channel.onopen = ()=> { p2pState.textContent = 'P2P: open'; alert('P2P channel open — you can chat now'); };
+function setUpDC(channel){
+  channel.onopen = ()=> { p2pState.textContent = 'P2P: open'; alert('P2P open — you can chat'); };
   channel.onmessage = (ev)=> {
     try{
       const obj = JSON.parse(ev.data);
-      if(obj.type === 'chat'){ handleIncomingChat(obj); }
-      else if(obj.type === 'typing'){ showRemoteTyping(obj.sender || 'studyAdda', !!obj.typing); }
-    } catch(e){ console.warn('dc msg parse', e); }
+      if(obj.type==='chat') addRemote(obj.sender||'studyAdda', obj.text);
+      else if(obj.type==='typing') showRemoteTyping(obj.sender||'studyAdda', !!obj.typing);
+    } catch(e){ console.warn('dc msg', e); }
   };
   channel.onclose = ()=> { p2pState.textContent = 'P2P: closed'; };
-  channel.onerror = (e)=> console.error('dc error', e);
+  channel.onerror = (e)=> console.error('dc err', e);
 }
+function cleanupPeer(){ if(dc){ try{ dc.close(); }catch(e){} dc=null; } if(pc){ try{ pc.close(); }catch(e){} pc=null; } p2pState.textContent='P2P: not connected'; }
 
-/* incoming chat from peer (display & save) */
-function handleIncomingChat(obj){
-  if(!obj) return;
-  const arr = loadMessages();
-  arr.push({ sender: obj.sender || 'studyAdda', text: obj.text, ts: Date.now() });
-  saveMessages(arr); renderMessages(arr);
-}
+function cleanup(){ cleanupPeer(); if(ws){ try{ ws.close(); }catch(e){} ws=null; } }
 
-/* cleanup */
-function cleanupPeer(){
-  if(dc){ try{ dc.close(); }catch(e){} dc=null; }
-  if(pc){ try{ pc.close(); }catch(e){} pc=null; }
-  p2pState.textContent = 'P2P: not connected';
-}
+/* ---------- typing events handled over DC ---------- */
+/* sendTyping called on input; remote typing displayed by setUpDC -> showRemoteTyping */
+inputField = inputField || document.getElementById('input'); // safety
 
-/* ---------------- init & unload ---------------- */
+/* ---------- init ---------- */
 (function init(){
-  // keep everything guarded until unlock
+  // start with locked overlay visible and app hidden
   appContainer.classList.add('hidden');
-  lockedScreen.style.display = 'flex';
-  // disable join UI until unlock
-  joinBtn.disabled = false; // join is allowed after unlock check in handler
+  overlay.style.display = 'flex';
+  document.body.classList.add('locked');
+  // ensure input accessible on mobile
+  inputField && inputField.setAttribute('autocapitalize','none');
 })();
-window.addEventListener('beforeunload', ()=> {
-  try{ sessionStorage.removeItem(STORAGE_KEY); }catch(e){}
-  if(pc) try{ pc.close(); }catch(e){}
-  if(ws) try{ ws.close(); }catch(e){}
-});
+window.addEventListener('beforeunload', ()=> { try{ sessionStorage.removeItem(STORAGE_KEY); }catch(e){} cleanup(); });
 </script>
 </body>
 </html>
