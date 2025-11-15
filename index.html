@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Study Vault — Economics (Auto P2P)</title>
+<style>
+:root{--bg:#0f1724;--muted:#9aa6bf;--accent:#7dd3fc;font-family:Inter,system-ui,Arial;}
+html,body{height:100%;margin:0;background:linear-gradient(180deg,#071025,#05122a);color:#e6eef8}
+.center{display:flex;align-items:center;justify-content:center;height:100%}
+.frame{width:1000px;max-width:96%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.6);overflow:hidden;display:grid;grid-template-columns:420px 1fr;}
+header{grid-column:1/-1;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.03);display:flex;gap:12px;align-items:center}
+.left{padding:18px;border-right:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg,rgba(13,23,36,0.6),rgba(6,12,22,0.55))}
+.pdfwrap{height:72vh;background:rgba(255,255,255,0.03);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:8px}
+iframe.pdf{flex:1;border-radius:6px;background:#fff;border:1px solid rgba(0,0,0,0.1);width:100%}
+.open-btn{margin-top:10px;display:block;width:100%;padding:10px;background:linear-gradient(90deg,var(--accent),#38bdf8);color:#012;border:none;border-radius:8px;font-weight:600;cursor:pointer}
+.right{padding:18px;display:flex;flex-direction:column;gap:12px;background:linear-gradient(180deg,rgba(1,6,14,0.4),rgba(2,9,18,0.4))}
+.panel{background:rgba(255,255,255,0.01);padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.02)}
+.chat{flex:1;display:flex;flex-direction:column;gap:8px}
+.msgs{flex:1;overflow:auto;padding:12px;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,0.01),rgba(255,255,255,0.005));border:1px solid rgba(255,255,255,0.02)}
+.msg{margin-bottom:10px;max-width:80%}
+.msg.you{align-self:flex-end;background:linear-gradient(90deg,#08304a,#074b66);padding:8px 10px;border-radius:10px 10px 4px 10px}
+.msg.them{align-self:flex-start;background:linear-gradient(90deg,#0b2b1a,#0c3c28);padding:8px 10px;border-radius:10px 10px 10px 4px}
+.msg small{display:block;font-size:11px;color:var(--muted)}
+.compose{display:flex;gap:8px;margin-top:6px}
+.compose input[type="text"]{flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit}
+.compose button{padding:10px 14px;border-radius:8px;border:none;background:var(--accent);color:#012;font-weight:700;cursor:pointer}
+.smallbtn{padding:8px 10px;background:transparent;color:var(--muted);border:1px dashed rgba(255,255,255,0.03);border-radius:8px;cursor:pointer}
+.locked-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(0deg,rgba(1,2,6,0.6),rgba(1,2,6,0.6));z-index:9999}
+.lockcard{width:420px;max-width:92%;background:#07111a;padding:18px;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.03)}
+.pw{display:flex;gap:8px;margin-top:12px}
+.pw input{flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+.hidden{display:none!important}
+.fallback{padding:12px;border-radius:8px;background:rgba(255,255,255,0.02);color:var(--muted);font-size:13px}
+a.fallback-link{color:var(--accent);font-weight:700;text-decoration:none}
+.status{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="center">
+  <div class="frame hidden" id="mainFrame" aria-hidden="true">
+    <header>
+      <div style="display:flex;flex-direction:column;">
+        <h1>Study Vault — Economics</h1>
+        <p style="margin:0;color:var(--muted);font-size:13px">Private study chat — auto online connect</p>
+      </div>
+      <div style="margin-left:auto;text-align:right"><p style="margin:0;font-size:13px;color:var(--muted)">Session: ephemeral • Auto signaling</p></div>
+    </header>
+
+    <section class="left">
+      <div class="pdfwrap" id="pdfWrap">
+        <iframe id="pdfFrame" class="pdf" src="Economics-SQP.pdf#view=fitH" title="Document preview"></iframe>
+
+        <div id="pdfFallback" class="fallback hidden">
+          <div><strong>PDF preview unavailable locally.</strong></div>
+          <div style="margin-top:8px;color:var(--muted)">Open the PDF in a new tab:</div>
+          <a id="openPdfLink" class="fallback-link" href="Economics-SQP.pdf" target="_blank" rel="noopener">Open Economics-SQP.pdf</a>
+        </div>
+
+        <div style="margin-top:8px">
+          <div class="panel"><strong>Preview the document then tap Open discussions</strong></div>
+          <button class="open-btn" id="openDiscussionsBtn">Open discussions</button>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:13px;color:var(--muted)"><strong>Note:</strong> Page password: <code>2511</code></div>
+    </section>
+
+    <section class="right">
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <strong>How it connects</strong>
+            <div style="color:var(--muted);font-size:13px;margin-top:6px">This page uses an automatic signaling server (WebSocket). The server matches two clients in the same room and they connect P2P for chat (DataChannel).</div>
+          </div>
+          <div style="text-align:right">
+            <div class="status" id="connStatus">Disconnected</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat hidden" id="chatArea">
+        <div class="panel" style="display:flex;justify-content:space-between;align-items:center">
+          <div><strong>Discussion</strong> <span style="color:var(--muted);font-size:12px">— studyAdda</span></div>
+          <div style="font-size:12px;color:var(--muted)"><span id="p2pState">P2P: not connected</span></div>
+        </div>
+
+        <div class="msgs panel" id="messages"></div>
+
+        <div class="compose">
+          <input type="text" id="inputMsg" placeholder="Type a message..." autocomplete="off" />
+          <button id="sendBtn">Send</button>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+          <div style="font-size:13px;color:var(--muted)">Room:</div>
+          <input id="roomInput" style="padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.05);background:transparent;color:inherit" value="room1" />
+          <button id="joinBtn" class="smallbtn">Join room</button>
+          <button id="leaveBtn" class="smallbtn hidden">Leave</button>
+        </div>
+      </div>
+    </section>
+
+    <footer style="grid-column:1/-1;padding:12px 18px;border-top:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between">
+      <div style="font-size:12px;color:var(--muted)">Built for private study chats — messages vanish on tab close.</div>
+      <div style="font-size:12px;color:var(--muted)">Document preview uses your uploaded file.</div>
+    </footer>
+  </div>
+</div>
+
+<div class="locked-overlay" id="lockedOverlay" role="dialog" aria-modal="true">
+  <div class="lockcard">
+    <h2>Enter password to unlock</h2>
+    <div style="color:var(--muted);font-size:13px">Enter the 4-digit password to proceed.</div>
+    <div class="pw"><input id="pwInput" type="password" placeholder="Enter password" inputmode="numeric" /><button id="pwBtn" class="smallbtn">Unlock</button></div>
+    <div style="margin-top:10px;font-size:13px;color:var(--muted)">After unlocking, preview document, then open discussions and join a room. Both users must join the same room to connect.</div>
+  </div>
+</div>
+
+<script>
+/* FINAL CONFIG: your Render signaling server URL */
+const SIGNALING_SERVER = 'wss://study-vault-signal.onrender.com'; // <--- already set for you
+const PASSWORD = '2511';
+const STORAGE_KEY = 'study_chat_auto_v_final';
+
+/* UI elements */
+const lockedOverlay = document.getElementById('lockedOverlay');
+const pwInput = document.getElementById('pwInput');
+const pwBtn = document.getElementById('pwBtn');
+const mainFrame = document.getElementById('mainFrame');
+const openDiscussionsBtn = document.getElementById('openDiscussionsBtn');
+const chatArea = document.getElementById('chatArea');
+const messagesDiv = document.getElementById('messages');
+const inputMsg = document.getElementById('inputMsg');
+const sendBtn = document.getElementById('sendBtn');
+const roomInput = document.getElementById('roomInput');
+const joinBtn = document.getElementById('joinBtn');
+const leaveBtn = document.getElementById('leaveBtn');
+const connStatus = document.getElementById('connStatus');
+const p2pState = document.getElementById('p2pState');
+const pdfFrame = document.getElementById('pdfFrame');
+const pdfFallback = document.getElementById('pdfFallback');
+
+let unlocked = false;
+let ws = null;
+let pc = null;
+let dc = null;
+let currentRoom = null;
+
+/* sample messages */
+const sampleMessages = [
+  {who:'them', text:"Hey — I read the sample paper about fiscal consolidation.", ts: Date.now()-1000*60*20},
+  {who:'you', text:"Yes — there's a good point about tax receipts helping the deficit.", ts: Date.now()-1000*60*18}
+];
+
+/* helpers */
+function escapeHtml(s){ return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+function renderMessages(arr){
+  messagesDiv.innerHTML = '';
+  for(const m of arr){
+    const el = document.createElement('div');
+    el.className = 'msg ' + (m.who==='you' ? 'you' : 'them');
+    const whoLabel = m.who==='you' ? 'You' : 'studyAdda';
+    el.innerHTML = '<div>' + escapeHtml(m.text) + '</div><small>' + whoLabel + ' • ' + new Date(m.ts).toLocaleTimeString() + '</small>';
+    messagesDiv.appendChild(el);
+  }
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+function loadMessages(){ const raw = sessionStorage.getItem(STORAGE_KEY); if(!raw){ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sampleMessages)); return sampleMessages.slice(); } try{ const arr=JSON.parse(raw); return Array.isArray(arr)?arr:[] }catch(e){ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sampleMessages)); return sampleMessages.slice(); } }
+function saveMessages(arr){ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+
+/* UI wiring */
+pwBtn.addEventListener('click', ()=> unlockWithPassword(pwInput.value));
+pwInput.addEventListener('keydown',(e)=>{ if(e.key==='Enter') pwBtn.click(); });
+openDiscussionsBtn.addEventListener('click', ()=> {
+  if(!unlocked){ alert('Unlock first'); return; }
+  chatArea.classList.remove('hidden');
+  renderMessages(loadMessages());
+});
+sendBtn.addEventListener('click', ()=> { const t=inputMsg.value.trim(); if(!t) return; sendLocalMessage(t); inputMsg.value=''; });
+inputMsg.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ sendBtn.click(); e.preventDefault(); } });
+
+joinBtn.addEventListener('click', ()=> {
+  if(!unlocked){ alert('Unlock first'); return; }
+  const room = (roomInput.value||'room1').trim();
+  if(!room){ alert('Enter a room name'); return; }
+  joinRoom(room);
+});
+leaveBtn.addEventListener('click', ()=> { leaveRoom(); });
+
+/* Unlock and PDF fallback check */
+function unlockWithPassword(pw){
+  if(pw !== PASSWORD){ alert('Incorrect password'); return false; }
+  unlocked = true;
+  lockedOverlay.style.display = 'none';
+  mainFrame.classList.remove('hidden');
+  mainFrame.setAttribute('aria-hidden','false');
+  tryCheckPdfEmbed();
+  return true;
+}
+function tryCheckPdfEmbed(){
+  let loaded=false;
+  pdfFrame.addEventListener('load', ()=> { pdfFallback.classList.add('hidden'); pdfFrame.classList.remove('hidden'); loaded=true; });
+  setTimeout(()=>{ if(!loaded) pdfFallback.classList.remove('hidden'); },900);
+}
+
+/* messaging */
+function sendLocalMessage(text){
+  const arr=loadMessages();
+  arr.push({who:'you', text, ts: Date.now()});
+  saveMessages(arr);
+  renderMessages(arr);
+  if(dc && dc.readyState === 'open'){
+    try{ dc.send(JSON.stringify({type:'chat', text})); }catch(e){ console.warn('dc send error', e); }
+  }
+}
+function handlePeerChat(text){
+  const arr = loadMessages();
+  arr.push({who:'them', text, ts: Date.now()});
+  saveMessages(arr);
+  renderMessages(arr);
+}
+
+/* ---------------- Signaling (WebSocket) ---------------- */
+function connectWebSocket(){
+  if(!SIGNALING_SERVER || SIGNALING_SERVER.includes('REPLACE_WITH_YOUR_SERVER_HOST')){
+    connStatus.textContent = 'No signaling server configured';
+    connStatus.style.color = 'orange';
+    return;
+  }
+  try{
+    ws = new WebSocket(SIGNALING_SERVER);
+  }catch(e){
+    connStatus.textContent = 'WebSocket error';
+    connStatus.style.color = 'red';
+    console.error(e);
+    return;
+  }
+  connStatus.textContent = 'Connecting to signaling...';
+  ws.onopen = ()=>{ connStatus.textContent = 'Connected to signaling'; connStatus.style.color = '#8fe'; if(currentRoom) sendJoin(currentRoom); };
+  ws.onmessage = (ev)=> {
+    try{
+      const msg = JSON.parse(ev.data);
+      if(msg.type === 'peer-ready'){
+        // server tells us there's at least another peer in the room
+        // start offer flow (the first to create offer may be arbitrary; this works)
+        if(!pc) createPeerConnectionAndOffer();
+      } else if(msg.type === 'signal'){
+        handleSignalingMessage(msg.data);
+      } else if(msg.type === 'joined-ack'){
+        connStatus.textContent = 'Joined room: ' + msg.room;
+        connStatus.style.color = '#8fe';
+      }
+    }catch(e){ console.warn('ws message parse', e); }
+  };
+  ws.onclose = ()=>{ connStatus.textContent = 'Signaling disconnected'; connStatus.style.color = 'orange'; };
+  ws.onerror = (e)=>{ connStatus.textContent = 'Signaling error'; connStatus.style.color = 'red'; console.error(e); };
+}
+
+function sendJoin(room){
+  currentRoom = room;
+  if(!ws || ws.readyState !== WebSocket.OPEN){ connectWebSocket(); }
+  const trySend = setInterval(()=>{
+    if(ws && ws.readyState === WebSocket.OPEN){
+      clearInterval(trySend);
+      ws.send(JSON.stringify({type:'join', room}));
+      connStatus.textContent = 'Joined room: ' + room;
+      connStatus.style.color = '#8fe';
+    }
+  },200);
+}
+
+function leaveRoom(){
+  if(ws && ws.readyState === WebSocket.OPEN && currentRoom){
+    ws.send(JSON.stringify({type:'leave', room: currentRoom}));
+  }
+  cleanupPeer();
+  currentRoom = null;
+  connStatus.textContent = 'Left room';
+  connStatus.style.color = 'var(--muted)';
+  leaveBtn.classList.add('hidden');
+  joinBtn.classList.remove('hidden');
+}
+
+function sendSignal(data){
+  if(ws && ws.readyState === WebSocket.OPEN && currentRoom){
+    ws.send(JSON.stringify({type:'signal', room: currentRoom, data}));
+  }
+}
+
+/* ---------------- WebRTC ---------------- */
+async function createPeerConnectionAndOffer(){
+  cleanupPeer();
+  pc = new RTCPeerConnection({iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]});
+  dc = pc.createDataChannel('study-chat');
+  setupDataChannel(dc);
+  pc.onicecandidate = (ev) => { if(ev.candidate) sendSignal({candidate: ev.candidate}); };
+  pc.onconnectionstatechange = ()=> { p2pState.textContent = 'P2P: ' + pc.connectionState; };
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  sendSignal({sdp: pc.localDescription});
+}
+
+async function handleSignalingMessage(data){
+  if(data.sdp){
+    const desc = data.sdp;
+    if(desc.type === 'offer'){
+      await createPeerConnectionAsCallee(desc);
+    } else if(desc.type === 'answer'){
+      if(!pc) return;
+      await pc.setRemoteDescription(desc);
+    }
+  }
+  if(data.candidate){
+    if(pc) {
+      try{ await pc.addIceCandidate(data.candidate); }catch(e){ console.warn('ice add error', e); }
+    }
+  }
+}
+
+async function createPeerConnectionAsCallee(offerDesc){
+  cleanupPeer();
+  pc = new RTCPeerConnection({iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]});
+  pc.ondatachannel = (ev) => { dc = ev.channel; setupDataChannel(dc); };
+  pc.onicecandidate = (ev)=> { if(ev.candidate) sendSignal({candidate: ev.candidate}); };
+  pc.onconnectionstatechange = ()=> { p2pState.textContent = 'P2P: ' + pc.connectionState; };
+  await pc.setRemoteDescription(offerDesc);
+  const answer = await pc.createAnswer();
+  await pc.setLocalDescription(answer);
+  sendSignal({sdp: pc.localDescription});
+}
+
+function setupDataChannel(channel){
+  channel.onopen = ()=> { p2pState.textContent = 'P2P: open'; alert('P2P channel open — you can chat now'); leaveBtn.classList.remove('hidden'); joinBtn.classList.add('hidden'); };
+  channel.onmessage = (ev)=> {
+    try{
+      const obj = JSON.parse(ev.data);
+      if(obj.type === 'chat' && obj.text){ handlePeerChat(obj.text); }
+    }catch(e){ console.warn('dc msg parse', e); }
+  };
+  channel.onclose = ()=> { p2pState.textContent = 'P2P: closed'; };
+  channel.onerror = (e)=> console.error('dc error', e);
+}
+
+function cleanupPeer(){
+  if(dc){ try{ dc.close(); }catch(e){} dc=null; }
+  if(pc){ try{ pc.close(); }catch(e){} pc=null; }
+  p2pState.textContent = 'P2P: not connected';
+}
+
+/* init & cleanup */
+(function init(){
+  lockedOverlay.style.display = 'flex';
+  mainFrame.classList.add('hidden');
+  pdfFrame.addEventListener('load', ()=> { pdfFallback.classList.add('hidden'); pdfFrame.classList.remove('hidden'); });
+})();
+window.addEventListener('beforeunload', ()=> { try{ sessionStorage.removeItem(STORAGE_KEY); }catch(e){} if(pc) try{ pc.close(); }catch(e){} if(ws) try{ ws.close(); }catch(e){} });
+
+</script>
+</body>
+</html>
