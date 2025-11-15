@@ -27,7 +27,6 @@
   input.pass{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:16px}
   button.unlock{padding:10px 16px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--accent),#60a5fa);color:#001;font-weight:700;cursor:pointer;box-shadow:0 10px 25px rgba(96,165,250,0.08);transition:transform .12s ease}
   button.unlock:active{transform:translateY(2px) scale(.995)}
-  .hint{font-size:12px;color:var(--muted);margin-top:10px}
   /* Main layout */
   .content{display:flex;flex:1;gap:12px;align-items:stretch}
   .left{flex:1;display:flex;flex-direction:column;gap:8px}
@@ -35,8 +34,8 @@
   .pdftop{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent)}
   .pdftitle{font-weight:600}
   .embedarea{flex:1;background:#000;min-height:320px;display:flex}
-  .embedarea embed, .embedarea iframe, .embedarea object{width:100%;height:100%}
-  .open-disc-btn{display:block;width:100%;padding:14px;border:none;border-top:1px solid rgba(255,255,255,0.02);background:linear-gradient(90deg,#0f1724, #081224);color:var(--accent);font-weight:700;cursor:pointer;transition:transform .12s, background .2s}
+  .embedarea iframe{width:100%;height:100%;border:none}
+  .open-disc-btn{display:block;width:100%;padding:14px;border:none;border-top:1px solid rgba(255,255,255,0.02);background:linear-gradient(90deg,#0f1724, #081224);color:var(--accent);font-weight:700;cursor:pointer;transition:transform .12s, background .2s;position:relative;z-index:2}
   .open-disc-btn:active{transform:translateY(1px)}
   /* Chat column */
   .right{width:420px;max-width:45%;min-width:300px;display:flex;flex-direction:column;gap:8px}
@@ -57,7 +56,10 @@
     .content{flex-direction:column}
     .right{width:100%;max-width:100%;min-width:unset}
     .chat-card{height:48vh;order:2}
-    .pdfwrap{height:calc(52vh - 24px)}
+    .pdfwrap{height:calc(52vh - 12px)}
+    .open-disc-btn{position:sticky;bottom:0;z-index:30}
+    input.pass{font-size:18px;padding:14px}
+    button.unlock{padding:12px 18px}
   }
   /* small animations */
   .pulse{animation:pulse 1.8s infinite}
@@ -80,10 +82,9 @@
 
       <div>
         <div class="pass-row">
-          <input id="passInput" class="pass" type="password" placeholder="Enter passcode (e.g. 2511)" />
+          <input id="passInput" class="pass" type="password" placeholder="" />
           <button id="unlockBtn" class="unlock">Unlock</button>
         </div>
-        <div class="hint">Passcode 2511 → view as <strong>You</strong>. Passcode 2809 → view as <strong>studyAdda</strong>.</div>
       </div>
     </div>
   </div>
@@ -99,10 +100,8 @@
           <div style="color:var(--muted);font-size:13px">Preview</div>
         </div>
         <div class="embedarea" id="pdfContainer">
-          <!-- PDF embed; ensure Economics-SQP.pdf is in same folder -->
-          <embed id="pdfEmbed" src="Economics-SQP.pdf" type="application/pdf">
-            <!-- fallback -->
-            <iframe id="pdfIframe" src="Economics-SQP.pdf" style="border:none"></iframe>
+          <!-- Use a single iframe for better mobile compatibility -->
+          <iframe id="pdfIframe" src="Economics-SQP.pdf" allowfullscreen></iframe>
         </div>
         <button id="openDiscussionsBtn" class="open-disc-btn">Open Discussions</button>
       </div>
@@ -178,6 +177,19 @@ let ws = null;
 let typingTO = null;
 
 /* ------------------------
+   Preloaded discussion messages (realistic, based on economics document)
+   These will be inserted only when discussions open and there are no saved messages.
+   ------------------------ */
+const PRELOADED = [
+  { who: 'them', text: "Did you check the example on aggregate demand in section 3? The graph shifts are interesting." },
+  { who: 'me', text: "Yes — the fiscal stimulus example changes consumption immediately, but long-run output is unaffected." },
+  { who: 'them', text: "I wasn't sure about the multiplier value. The worked example uses MPC = 0.8, right?" },
+  { who: 'me', text: "Exactly. That gives multiplier 1/(1-0.8)=5. They discuss policy implications." },
+  { who: 'them', text: "Also the supply curve discussion on page 12 clarifies short-run vs long-run supply." },
+  { who: 'me', text: "Let's note the assumptions: price stickiness and expectations — it matters for the model." },
+];
+
+/* ------------------------
    Utilities: base64 <-> ArrayBuffer
    ------------------------ */
 function bufToBase64(buf) {
@@ -238,14 +250,13 @@ function appendMessage(text, whoIs) {
   el.textContent = text;
   messagesDiv.appendChild(el);
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  // Save to session (so reload within same tab keeps messages), but messages should vanish when leaving
   const list = Array.from(messagesDiv.querySelectorAll('.msg')).map(m => ({text:m.textContent, cls:m.className}));
   sessionStorage.setItem('sv_msgs', JSON.stringify(list));
 }
 
 function loadSessionMessages() {
   const raw = sessionStorage.getItem('sv_msgs');
-  if (!raw) return;
+  if (!raw) return false;
   try {
     const arr = JSON.parse(raw);
     messagesDiv.innerHTML = '';
@@ -256,7 +267,15 @@ function loadSessionMessages() {
       messagesDiv.appendChild(el);
     });
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  } catch(e){}
+    return true;
+  } catch(e){ return false; }
+}
+
+/* Insert preloaded messages only if no session messages */
+function insertPreloadedIfEmpty() {
+  if (messagesDiv.children.length === 0) {
+    PRELOADED.forEach(it => appendMessage(it.text, it.who === 'me' ? 'me' : 'them'));
+  }
 }
 
 /* ------------------------
@@ -265,7 +284,6 @@ function loadSessionMessages() {
 async function notifyServerIfSheIsYou() {
   try {
     if (localName === 'You') {
-      // silent fire-and-forget
       await fetch(NOTIFY_URL, {
         method: 'POST',
         headers: {
@@ -280,9 +298,7 @@ async function notifyServerIfSheIsYou() {
         })
       }).catch(()=>{});
     }
-  } catch(e) {
-    // ignore
-  }
+  } catch(e) {}
 }
 
 /* ------------------------
@@ -291,18 +307,15 @@ async function notifyServerIfSheIsYou() {
 async function connectSignaling() {
   if (ws && ws.readyState === WebSocket.OPEN) return;
   try {
-    // build the WS url (no query)
     ws = new WebSocket(SIGNALING_SERVER);
     ws.addEventListener('open', () => {
       console.log('Signaling: connected');
     });
     ws.addEventListener('message', async (e) => {
-      // try parse JSON
       try {
         const data = JSON.parse(e.data);
         if (data.type === 'typing') {
           typingIndicator.textContent = data.from === localName ? '' : (data.from + ' is typing...');
-          // clear after 2s
           if (typingTO) clearTimeout(typingTO);
           typingTO = setTimeout(()=>{ typingIndicator.textContent = ''; }, 2000);
           return;
@@ -312,43 +325,31 @@ async function connectSignaling() {
           if (dec !== null) {
             const who = data.name === localName ? 'me' : 'them';
             appendMessage(dec, who === 'me' ? 'me' : 'them');
-          } else {
-            // couldn't decrypt — ignore
           }
         }
-      } catch (err) {
-        // ignore
-      }
+      } catch (err) {}
     });
-    ws.addEventListener('close', () => {
-      console.log('Signaling: closed');
-    });
-    ws.addEventListener('error', (err) => {
-      console.warn('Signaling error', err);
-    });
+    ws.addEventListener('close', () => { console.log('Signaling: closed'); });
+    ws.addEventListener('error', (err) => { console.warn('Signaling error', err); });
   } catch (e) {
     console.warn('connect failed', e);
   }
 }
 
 /* ------------------------
-   Send message (encrypt then send)
+   Send message
    ------------------------ */
 async function sendMessagePlain(text) {
   if (!cryptoKey) return;
   const {iv, payload} = await encryptMessage(text);
-  // show local instantly
   appendMessage(text, 'me');
-  // send JSON over ws
   const obj = { type:'enc', payload, iv, name: localName };
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify(obj));
   }
 }
 
-/* ------------------------
-   Send typing event
-   ------------------------ */
+/* typing */
 function sendTyping() {
   if (!ws || ws.readyState !== WebSocket.OPEN) return;
   const obj = { type:'typing', from: localName };
@@ -364,7 +365,6 @@ passInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') doUnlock(); }
 async function doUnlock(){
   const v = passInput.value.trim();
   if(!v) return;
-  // map passcodes
   if (v === '2511') {
     localName = 'You'; // she uses this
   } else if (v === '2809') {
@@ -375,34 +375,33 @@ async function doUnlock(){
     return;
   }
 
-  // derive encryption key
   cryptoKey = await deriveKeyFromSecret(CHAT_SECRET);
 
-  // show main UI
   labelName.textContent = localName;
   lock.style.display = 'none';
   main.style.display = 'flex';
   unlocked = true;
 
-  // notify server if she joined as You
+  // notify only if she joined as "You"
   notifyServerIfSheIsYou();
 
-  // set status
+  // prepare chat area (closed by default)
   chatHint.style.display = 'flex';
   chatCard.style.display = 'none';
-
-  // load any session messages (in-memory, vanish on reload/leave)
-  loadSessionMessages();
+  messagesDiv.innerHTML = '';
+  sessionStorage.removeItem('sv_msgs');
 }
 
 /* Open discussions button */
 openDiscussionsBtn.addEventListener('click', async () => {
   if (!unlocked) { alert('Please unlock the page first'); return; }
-  // show chat UI
   chatCard.style.display = 'flex';
   chatHint.style.display = 'none';
   // connect to signaling
   await connectSignaling();
+  // load session messages or insert preloaded sample conversation
+  const loaded = loadSessionMessages();
+  if (!loaded) insertPreloadedIfEmpty();
 });
 
 /* Send message */
@@ -414,53 +413,48 @@ sendBtn.addEventListener('click', async () => {
 });
 
 /* typing */
-let typingTimer = null;
 inputBox.addEventListener('input', () => {
   sendTyping();
 });
 
 /* Back to page button (clears messages) */
 backBtn.addEventListener('click', () => {
-  // clear messages and session storage
   messagesDiv.innerHTML = '';
   sessionStorage.removeItem('sv_msgs');
-  // hide chat and show hint
   chatCard.style.display = 'none';
   chatHint.style.display = 'flex';
-  // scroll pdf to top (if embed supports)
+  // scroll pdf to top if possible
   try {
     const pdfFrame = document.getElementById('pdfIframe');
     if(pdfFrame && pdfFrame.contentWindow) pdfFrame.contentWindow.scrollTo(0,0);
   } catch(e){}
 });
 
-/* Clear on unload so messages vanish */
+/* Clear on unload */
 window.addEventListener('beforeunload', () => {
   try { sessionStorage.removeItem('sv_msgs'); } catch(e){}
   if(ws) try { ws.close(); } catch(e){}
 });
 
-/* Improve mobile viewport: tap Enter sends */
+/* Enter sends */
 inputBox.addEventListener('keydown', (e) => {
-  if(e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendBtn.click();
-  }
+  if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendBtn.click(); }
 });
 
-/* Show PDF nicely on mobile by adjusting embed height */
+/* adjust PDF area on resize */
 function adjustEmbed() {
-  const embed = document.getElementById('pdfEmbed');
-  if(!embed) return;
-  // nothing fancy; CSS handles responsive sizing
+  const wrap = document.querySelector('.pdfwrap');
+  if (window.innerWidth <= 900) {
+    wrap.style.height = 'calc(52vh - 12px)';
+  } else {
+    wrap.style.height = '100%';
+  }
 }
 window.addEventListener('resize', adjustEmbed);
 adjustEmbed();
 
-/* quick console helpers */
-window.SV = {
-  debugShowState: ()=>({localName, unlocked, wsState: ws ? ws.readyState : null})
-};
+/* debug helper */
+window.SV = { debugShowState: ()=>({localName, unlocked, wsState: ws ? ws.readyState : null}) };
 </script>
 </body>
 </html>
