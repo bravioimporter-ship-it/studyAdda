@@ -3,208 +3,150 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Study Vault — Economics (Mobile-friendly)</title>
+<title>Study Vault — Economics (Stable Chat + Typing)</title>
 <style>
-/* ---------------- theme ---------------- */
 :root{
-  --bg:#071025;
-  --card:#0a1220;
-  --muted:#9aa6bf;
-  --accent:#38bdf8;
-  --accent-2:#7dd3fc;
-  --glass: rgba(255,255,255,0.04);
-  --radius:14px;
-  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  --bg:#071025; --card:#0a1220; --muted:#9aa6bf; --accent:#38bdf8; --accent-2:#7dd3fc;
+  --glass: rgba(255,255,255,0.04); --radius:12px; font-family:Inter,system-ui,Arial;
 }
-
-/* reset */
 *{box-sizing:border-box}
-html,body{height:100%;margin:0;background:linear-gradient(180deg,#071025 0%, #041029 100%);color:#e6eef8}
-a{color:var(--accent)}
-
-.app{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px}
-.frame{
-  width:1100px; max-width:100%; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  border-radius:var(--radius); box-shadow: 0 18px 40px rgba(2,10,20,0.6);
-  overflow:hidden; display:grid; grid-template-columns:420px 1fr; gap:0;
-  transition:transform .2s ease;
-  border: 1px solid rgba(255,255,255,0.02);
-}
-
-/* header */
-.header{
-  grid-column:1/-1; display:flex; align-items:center; justify-content:space-between;
-  padding:14px 18px; border-bottom:1px solid rgba(255,255,255,0.03); background: linear-gradient(180deg, rgba(255,255,255,0.006), rgba(255,255,255,0.003));
-}
+html,body{height:100%;margin:0;background:linear-gradient(180deg,#071025,#041029);color:#e6eef8}
+.app{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:14px}
+.container{width:1100px;max-width:100%;border-radius:var(--radius);overflow:hidden;box-shadow:0 18px 40px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.008))}
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.03)}
 .title{display:flex;flex-direction:column}
-.title h1{font-size:18px;margin:0}
+.title h1{margin:0;font-size:18px}
 .title p{margin:0;color:var(--muted);font-size:13px}
 
-/* left: document */
-.left{padding:14px;border-right:1px solid rgba(255,255,255,0.02); background: linear-gradient(180deg, rgba(8,16,28,0.6), rgba(4,8,16,0.55)); display:flex; flex-direction:column; gap:12px}
-.pdfwrap{
-  position:relative; background:var(--glass); border-radius:10px; overflow:hidden; display:flex; flex-direction:column; height:74vh; min-height:420px;
-  box-shadow: inset 0 -40px 80px rgba(0,0,0,0.25);
-}
-.pdfframe{flex:1;width:100%;height:100%;border:0;background:#fff; display:block; transition:filter .25s ease, transform .25s ease;}
-.pdf-loading{filter:blur(4px) saturate(.9); transform:scale(.995)}
+/* layout */
+.main{display:grid;grid-template-columns:420px 1fr;gap:0}
+.left{padding:12px;border-right:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg, rgba(8,16,28,0.6), rgba(4,8,16,0.55))}
+.right{padding:12px;display:flex;flex-direction:column;gap:12px;background:linear-gradient(180deg, rgba(1,6,14,0.35), rgba(2,8,16,0.3))}
 
-/* sticky overlay bottom inside pdfwrap */
-.pdf-overlay{
-  position:absolute; left:0;right:0; bottom:0; display:flex; justify-content:center; padding:12px;
-  background: linear-gradient(180deg, rgba(7,12,20,0.00), rgba(3,6,10,0.65));
-  pointer-events:none;
-}
-.open-btn{
-  pointer-events:auto;
-  -webkit-tap-highlight-color: transparent;
-  border:0; padding:12px 18px; border-radius:12px; background:linear-gradient(90deg,var(--accent-2),var(--accent));
-  color:#012; font-weight:800; font-size:15px; width:100%;
-  max-width:420px; box-shadow: 0 8px 20px rgba(56,189,248,0.12);
-  transition:transform .08s ease, box-shadow .12s ease, opacity .12s ease;
-}
-.open-btn:active{ transform:translateY(2px) scale(.998) }
-.open-btn:disabled{ opacity:.6; cursor:not-allowed }
+/* pdf viewer */
+.pdfwrap{position:relative;background:var(--glass);border-radius:10px;height:74vh;min-height:420px;overflow:hidden;display:flex;flex-direction:column}
+.pdfframe{flex:1;width:100%;height:100%;border:0;background:#fff;display:block}
+.pdf-overlay{position:absolute;left:0;right:0;bottom:0;padding:10px;background:linear-gradient(180deg,rgba(3,6,10,0.00),rgba(3,6,10,0.6));display:flex;justify-content:center;pointer-events:none}
+.open-btn{pointer-events:auto;border:0;padding:12px 18px;border-radius:10px;background:linear-gradient(90deg,var(--accent-2),var(--accent));color:#012;font-weight:800;width:100%;max-width:420px;box-shadow:0 10px 24px rgba(56,189,248,0.12)}
+.pdf-fallback{padding:12px;color:var(--muted);display:flex;flex-direction:column;gap:8px}
 
-/* fallback if iframe blocked */
-.pdf-fallback{padding:14px; color:var(--muted); font-size:14px; display:flex; flex-direction:column; gap:8px; align-items:flex-start}
-.pdf-fallback a{background:rgba(255,255,255,0.03); padding:8px 12px; border-radius:8px; text-decoration:none; color:var(--accent)}
-
-/* left meta */
-.note{color:var(--muted); font-size:13px}
-
-/* right: chat */
-.right{padding:14px; display:flex; flex-direction:column; gap:12px; background: linear-gradient(180deg, rgba(1,6,14,0.35), rgba(2,8,16,0.3))}
-.panel{background:rgba(255,255,255,0.01); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.02)}
+/* right / chat */
+.panel{background:rgba(255,255,255,0.01);padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.02)}
 .status{font-size:13px;color:var(--muted)}
-
-/* chat area */
-.chat{display:flex; flex-direction:column; gap:8px; height:66vh; min-height:420px}
-.chatHidden{display:none}
-.msgs{flex:1; overflow:auto; padding:12px; border-radius:8px; background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005)); border:1px solid rgba(255,255,255,0.02)}
-.msg{display:inline-block; margin-bottom:10px; max-width:86%; line-height:1.3}
-.msg.you{align-self:flex-end; background:linear-gradient(90deg,#08304a,#074b66); padding:10px 12px; border-radius:12px 12px 6px 12px; box-shadow:0 6px 18px rgba(3,10,18,0.6)}
-.msg.them{align-self:flex-start; background:linear-gradient(90deg,#0b2b1a,#0c3c28); padding:10px 12px; border-radius:12px 12px 12px 6px; box-shadow:0 6px 18px rgba(3,10,18,0.6)}
+.chat{display:flex;flex-direction:column;gap:8px;height:66vh;min-height:420px}
+.msgs{flex:1;overflow:auto;padding:12px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));border:1px solid rgba(255,255,255,0.02)}
+.msg{display:inline-block;margin-bottom:10px;max-width:82%;line-height:1.3}
+.msg.you{align-self:flex-end;background:linear-gradient(90deg,#08304a,#074b66);padding:10px 12px;border-radius:12px 12px 6px 12px;box-shadow:0 6px 18px rgba(3,10,18,0.6)}
+.msg.them{align-self:flex-start;background:linear-gradient(90deg,#0b2b1a,#0c3c28);padding:10px 12px;border-radius:12px 12px 12px 6px;box-shadow:0 6px 18px rgba(3,10,18,0.6)}
 .msg small{display:block;margin-top:6px;font-size:12px;color:var(--muted)}
+.typing{font-size:13px;color:var(--muted);padding:6px 8px}
 
-/* compose row */
-.compose{display:flex;gap:8px; align-items:center}
-.compose input{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:15px;outline:none}
+/* composer */
+.compose{display:flex;gap:8px;align-items:center}
+.compose input{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:15px}
 .compose button{padding:12px 14px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent-2),var(--accent));color:#012;font-weight:700}
 
-/* room row */
-.room-row{display:flex;gap:8px;align-items:center}
-.room-row input{padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
-
-/* small controls */
-.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+/* room row & small controls */
+.row{display:flex;gap:8px;align-items:center}
+.row input{padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
 .smallbtn{padding:8px 10px;border-radius:8px;border:1px dashed rgba(255,255,255,0.03);background:transparent;color:var(--muted)}
 
-/* clear chat button */
-.clear-btn{background:transparent;color:#f9a8d4;border:1px solid rgba(249,168,212,0.12);padding:8px 10px;border-radius:8px}
-
-/* sticky footer on small devices for pdf overlay */
-.footerNote{font-size:12px;color:var(--muted)}
-
-/* locked overlay */
-.locked-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(0deg,rgba(1,2,6,0.65),rgba(1,2,6,0.65));z-index:9999}
-.lockcard{width:420px;max-width:94%;background:#07111a;padding:18px;border-radius:12px;box-shadow:0 18px 40px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.03)}
-.lockcard h2{margin:0 0 8px 0}
+/* locked overlay (completely blocks & hide main until correct) */
+.locked-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(0deg,rgba(1,2,6,0.75),rgba(1,2,6,0.75));z-index:9999}
+.lockbox{width:420px;max-width:94%;background:#07111a;padding:18px;border-radius:12px;box-shadow:0 18px 40px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.03)}
+.lockbox h2{margin:0 0 8px 0}
 .pw{display:flex;gap:8px;margin-top:12px}
 .pw input{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:16px}
 
-/* responsive: mobile-first */
+/* responsive */
 @media (max-width:920px){
-  .frame{grid-template-columns:1fr; width:100%; border-radius:12px}
-  .left{order:1;padding:12px}
-  .right{order:2;padding:12px}
+  .main{grid-template-columns:1fr}
   .pdfwrap{height:62vh}
-  .chat{height:40vh; min-height:240px}
-  .header{padding:12px}
+  .chat{height:40vh;min-height:220px}
   .title h1{font-size:16px}
-  .open-btn{max-width:100%; padding:14px; font-size:16px}
   .compose input{padding:14px}
   .pw input{padding:14px}
 }
-
-/* tiny screens */
 @media (max-width:420px){
   .pdfwrap{height:56vh}
-  .open-btn{padding:12px;font-size:15px;border-radius:12px}
+  .open-btn{padding:12px;font-size:15px;border-radius:10px}
   .compose input{font-size:15px;padding:12px}
 }
+.hidden{display:none!important}
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="frame" id="frame">
+  <!-- everything hidden until unlocked: we will keep container hidden until passcode accepted -->
+  <div class="container hidden" id="appContainer" aria-hidden="true">
     <div class="header">
       <div class="title">
         <h1>Study Vault — Economics</h1>
         <p>Private study chat — enter passcode to unlock</p>
       </div>
-      <div class="status" id="connStatus">Disconnected</div>
+      <div id="connStatus" class="status">Disconnected</div>
     </div>
 
-    <section class="left">
-      <div class="pdfwrap" id="pdfWrap">
-        <iframe id="pdfFrame" class="pdfframe" title="Document preview" aria-label="Document preview"></iframe>
+    <div class="main">
+      <section class="left">
+        <div class="pdfwrap" id="pdfWrap" aria-live="polite">
+          <iframe id="pdfFrame" class="pdfframe" title="Document preview" aria-label="Document preview"></iframe>
 
-        <div id="pdfFallback" class="pdf-fallback" style="display:none">
-          <div><strong>PDF preview unavailable in this browser.</strong></div>
-          <div style="color:var(--muted)">Open the PDF in a new tab:</div>
-          <a id="openPdfLink" href="Economics-SQP.pdf" target="_blank" rel="noopener">Open Economics-SQP.pdf</a>
+          <div id="pdfFallback" class="pdf-fallback hidden">
+            <div><strong>PDF preview unavailable in this browser.</strong></div>
+            <div style="color:var(--muted)">Open the PDF in a new tab:</div>
+            <a id="openPdfLink" href="Economics-SQP.pdf" target="_blank" rel="noopener">Open Economics-SQP.pdf</a>
+          </div>
+
+          <div class="pdf-overlay">
+            <button id="openDiscussionsBtn" class="open-btn">Open discussions</button>
+          </div>
         </div>
 
-        <div class="pdf-overlay" aria-hidden="true">
-          <button id="openDiscussionsBtn" class="open-btn">Open discussions</button>
-        </div>
-      </div>
+        <div style="margin-top:10px;color:var(--muted)">Tip: passcodes — <strong>2511</strong> = You, <strong>2809</strong> = studyAdda</div>
+      </section>
 
-      <div class="note">Tip: page passcodes: <strong>2511</strong> (normal) — <strong>2809</strong> (enter as <em>studyAdda</em>)</div>
-    </section>
-
-    <section class="right">
-      <div class="panel">
-        <div style="display:flex;justify-content:space-between;align-items:center">
+      <section class="right">
+        <div class="panel" style="display:flex;justify-content:space-between;align-items:center">
           <div>
             <strong>Connection</strong>
-            <div style="color:var(--muted);font-size:13px;margin-top:6px">Auto signaling + WebRTC P2P. Both users join same room to connect.</div>
+            <div style="color:var(--muted);font-size:13px;margin-top:6px">Auto signaling + WebRTC P2P. Both users join the same room to connect.</div>
           </div>
-          <div style="text-align:right"><div id="p2pState" class="status">P2P: not connected</div></div>
+          <div class="status" id="p2pState">P2P: not connected</div>
         </div>
-      </div>
 
-      <div id="chatContainer" class="chat chatHidden" aria-live="polite">
-        <div class="panel" style="display:flex;justify-content:space-between;align-items:center">
-          <div><strong>Discussion</strong> <span style="color:var(--muted);font-size:12px">— studyAdda</span></div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <button id="clearChat" class="clear-btn" title="Clear chat now">Clear</button>
-            <div style="font-size:12px;color:var(--muted)" id="msgInfo">Session only</div>
+        <div class="panel chat" id="chatPanel" aria-live="polite">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div><strong>Discussion</strong> <span style="color:var(--muted);font-size:12px">— studyAdda</span></div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <button id="clearChat" class="smallbtn" title="Clear session messages">Clear</button>
+              <div style="font-size:12px;color:var(--muted)">Session only</div>
+            </div>
+          </div>
+
+          <div id="msgsContainer" class="msgs" role="log" aria-live="polite"></div>
+
+          <div id="typingIndicator" class="typing" style="display:none"></div>
+
+          <div class="compose">
+            <input id="inputMsg" type="text" placeholder="Type a message..." autocomplete="off" />
+            <button id="sendBtn">Send</button>
+          </div>
+
+          <div class="panel" style="margin-top:8px">
+            <div class="row">
+              <div style="font-size:13px;color:var(--muted);margin-right:6px">Room:</div>
+              <input id="roomInput" placeholder="room1" value="room1" />
+              <button id="joinBtn" class="smallbtn">Join</button>
+              <button id="leaveBtn" class="smallbtn hidden">Leave</button>
+            </div>
           </div>
         </div>
 
-        <div class="msgs panel" id="messages"></div>
+      </section>
+    </div>
 
-        <div class="compose">
-          <input id="inputMsg" type="text" placeholder="Type a message..." autocomplete="off" />
-          <button id="sendBtn">Send</button>
-        </div>
-
-        <div style="margin-top:8px" class="panel">
-          <div class="room-row">
-            <div style="font-size:13px;color:var(--muted);margin-right:6px">Room:</div>
-            <input id="roomInput" placeholder="room1" value="room1" />
-            <button id="joinBtn" class="smallbtn">Join</button>
-            <button id="leaveBtn" class="smallbtn" style="display:none">Leave</button>
-          </div>
-        </div>
-      </div>
-
-    </section>
-
-    <footer style="grid-column:1/-1;padding:12px 18px;border-top:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;font-size:12px;color:var(--muted)">
+    <footer style="padding:12px 16px;border-top:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;font-size:12px;color:var(--muted)">
       <div>Built for private study chats — messages vanish when tab closed.</div>
       <div>Document preview uses your uploaded file.</div>
     </footer>
@@ -212,102 +154,88 @@ a{color:var(--accent)}
 </div>
 
 <!-- Locked overlay (blocks everything) -->
-<div class="locked-overlay" id="lockedOverlay" role="dialog" aria-modal="true">
-  <div class="lockcard">
+<div class="locked-screen" id="lockedScreen" role="dialog" aria-modal="true">
+  <div class="lockbox">
     <h2>Enter passcode to unlock</h2>
-    <div style="color:var(--muted);font-size:13px;margin-top:4px">Enter 4-digit passcode. Use <strong>2809</strong> to enter as <em>studyAdda</em>.</div>
-    <div class="pw" style="margin-top:12px">
+    <div style="color:var(--muted);font-size:13px;margin-top:6px">Enter 4-digit passcode. Use <strong>2809</strong> to enter as <em>studyAdda</em>.</div>
+    <div class="pw">
       <input id="pwInput" type="password" placeholder="Enter passcode" inputmode="numeric" />
       <button id="pwBtn" class="smallbtn">Unlock</button>
     </div>
-    <div style="margin-top:10px;color:var(--muted);font-size:13px">After unlocking the document will load. Use the button at the bottom of the document to open discussions.</div>
+    <div style="margin-top:12px;color:var(--muted);font-size:13px">After unlocking the document will load; use the button at the bottom of the document to open discussions.</div>
   </div>
 </div>
 
 <script>
 /* ---------------- CONFIG ---------------- */
-const SIGNALING_SERVER = 'wss://study-vault-signal.onrender.com'; // your Render server
+const SIGNALING_SERVER = 'wss://study-vault-signal.onrender.com'; // your Render URL
 const PASS_NORMAL = '2511';
 const PASS_STUDYADDA = '2809';
-const STORAGE_KEY = 'study_chat_mobile_v2';
+const STORAGE_KEY = 'study_chat_final_v1';
 
 /* ---------------- DOM ---------------- */
-const lockedOverlay = document.getElementById('lockedOverlay');
+const lockedScreen = document.getElementById('lockedScreen');
 const pwInput = document.getElementById('pwInput');
 const pwBtn = document.getElementById('pwBtn');
+const appContainer = document.getElementById('appContainer');
 const pdfFrame = document.getElementById('pdfFrame');
 const pdfFallback = document.getElementById('pdfFallback');
 const openDiscussionsBtn = document.getElementById('openDiscussionsBtn');
-const chatContainer = document.getElementById('chatContainer');
-const messagesDiv = document.getElementById('messages');
+
 const inputMsg = document.getElementById('inputMsg');
 const sendBtn = document.getElementById('sendBtn');
+const msgsContainer = document.getElementById('msgsContainer');
+const typingIndicator = document.getElementById('typingIndicator');
+const clearChat = document.getElementById('clearChat');
 const joinBtn = document.getElementById('joinBtn');
 const leaveBtn = document.getElementById('leaveBtn');
 const roomInput = document.getElementById('roomInput');
 const connStatus = document.getElementById('connStatus');
 const p2pState = document.getElementById('p2pState');
-const clearChatBtn = document.getElementById('clearChat');
 
-let localIdentity = 'You'; // changes to 'studyAdda' when unlocking with PASS_STUDYADDA
+let localIdentity = 'You'; // becomes 'studyAdda' if unlocking with PASS_STUDYADDA
 let unlocked = false;
 
-/* WebRTC + signaling */
+/* WebRTC + signaling state */
 let ws = null;
 let pc = null;
 let dc = null;
 let currentRoom = null;
 
-/* sample messages if none */
+/* typing debounce */
+let typingTimer = null;
+let isTyping = false;
+const TYPING_DEBOUNCE = 800; // ms
+
+/* sample messages */
 const sampleMessages = [
-  {sender:'studyAdda', text: "Hey — I read the sample paper about fiscal consolidation.", ts: Date.now()-1000*60*20},
-  {sender:'You', text: "Yes — there's a good point about tax receipts helping the deficit.", ts: Date.now()-1000*60*18}
+  { sender:'studyAdda', text:'Hey — I read the sample paper about fiscal consolidation.', ts: Date.now()-1000*60*20 },
+  { sender:'You', text:"Yes — there's a good point about tax receipts helping the deficit.", ts: Date.now()-1000*60*18 }
 ];
 
-/* ---------------- helpers ---------------- */
+/* ---------------- utility ---------------- */
 function escapeHtml(s){ return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+function loadMessages(){ const raw = sessionStorage.getItem(STORAGE_KEY); if(!raw){ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sampleMessages)); return sampleMessages.slice(); } try{ const arr=JSON.parse(raw); return Array.isArray(arr)?arr:[] }catch(e){ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sampleMessages)); return sampleMessages.slice(); } }
+function saveMessages(arr){ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+function clearMessages(){ sessionStorage.removeItem(STORAGE_KEY); msgsContainer.innerHTML=''; }
 
-function loadMessages(){
-  const raw = sessionStorage.getItem(STORAGE_KEY);
-  if(!raw){
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sampleMessages));
-    return sampleMessages.slice();
-  }
-  try {
-    const arr = JSON.parse(raw);
-    if(Array.isArray(arr)) return arr;
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sampleMessages));
-    return sampleMessages.slice();
-  } catch(e){
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sampleMessages));
-    return sampleMessages.slice();
-  }
-}
-function saveMessages(arr){
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-}
-function clearMessages(){
-  sessionStorage.removeItem(STORAGE_KEY);
-  messagesDiv.innerHTML = '';
-}
-
-/* render messages (show sender text exactly) */
+/* render messages */
 function renderMessages(arr){
-  messagesDiv.innerHTML = '';
+  msgsContainer.innerHTML = '';
   for(const m of arr){
     const el = document.createElement('div');
     el.className = 'msg ' + ((m.sender === localIdentity) ? 'you' : 'them');
     el.innerHTML = '<div>' + escapeHtml(m.text) + '</div><small>' + escapeHtml(m.sender) + ' • ' + new Date(m.ts).toLocaleTimeString() + '</small>';
-    messagesDiv.appendChild(el);
+    msgsContainer.appendChild(el);
   }
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  msgsContainer.scrollTop = msgsContainer.scrollHeight;
 }
 
-/* ---------------- Unlock flow: set iframe src only after correct passcode ---------------- */
-pwBtn.addEventListener('click', () => unlockFlow(pwInput.value));
-pwInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') pwBtn.click(); });
+/* ---------------- unlock flow (completely hides content until correct) ---------------- */
+pwBtn.addEventListener('click', ()=> unlock(pwInput.value));
+pwInput.addEventListener('keydown', (e)=> { if(e.key === 'Enter') pwBtn.click(); });
 
-function unlockFlow(code){
+function unlock(code){
   if(code === PASS_NORMAL){
     localIdentity = 'You';
   } else if(code === PASS_STUDYADDA){
@@ -316,135 +244,140 @@ function unlockFlow(code){
     alert('Incorrect passcode.');
     return;
   }
+  // reveal app container and load PDF
   unlocked = true;
-  lockedOverlay.style.display = 'none';
-  // load PDF into iframe now
+  lockedScreen.style.display = 'none';
+  appContainer.classList.remove('hidden');
+  appContainer.setAttribute('aria-hidden','false');
+  // load pdf only now
   pdfFrame.src = 'Economics-SQP.pdf#view=FitH';
-  pdfFrame.classList.remove('pdf-loading');
-  // show fallback or hide fallback after load check
-  pdfFrame.addEventListener('load', () => {
-    pdfFallback.style.display = 'none';
-    pdfFrame.style.display = 'block';
-  }, { once:true });
-  setTimeout(()=>{ if(pdfFrame.contentWindow === null) { pdfFallback.style.display = 'block'; pdfFrame.style.display='none'; } }, 900);
-  // update UI text
+  pdfFrame.style.display = 'block';
+  // check if embed works (some browsers disallow file://)
+  let loaded = false;
+  pdfFrame.addEventListener('load', ()=> { pdfFallback.classList.add('hidden'); loaded = true; }, { once:true });
+  setTimeout(()=> { if(!loaded){ pdfFallback.classList.remove('hidden'); pdfFrame.style.display='none'; } }, 800);
   connStatus.textContent = 'Unlocked';
   connStatus.style.color = '#8fe';
 }
 
-/* ---------------- Open discussions button ---------------- */
-openDiscussionsBtn.addEventListener('click', () => {
+/* ---------------- Open discussions (from bottom of pdf) ---------------- */
+openDiscussionsBtn.addEventListener('click', ()=> {
   if(!unlocked){ alert('Unlock first'); return; }
-  chatContainer.classList.remove('chatHidden');
+  // show chat: load messages
   const arr = loadMessages();
   renderMessages(arr);
-  inputMsg.focus();
+  // focus input for mobile
+  setTimeout(()=> inputMsg.focus(), 150);
 });
 
-/* ---------------- send local message (and forward via DataChannel if open) ---------------- */
-sendBtn.addEventListener('click', sendMessageFromInput);
-inputMsg.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ sendMessageFromInput(); e.preventDefault(); } });
+/* ---------------- sending messages + forwarding via DataChannel ---------------- */
+sendBtn.addEventListener('click', sendMessage);
+inputMsg.addEventListener('keydown', (e)=> { if(e.key === 'Enter'){ sendMessage(); e.preventDefault(); } });
 
-function sendMessageFromInput(){
+function sendMessage(){
   const text = inputMsg.value.trim();
   if(!text) return;
   const arr = loadMessages();
-  const msgObj = { sender: localIdentity, text, ts: Date.now() };
-  arr.push(msgObj);
-  saveMessages(arr);
-  renderMessages(arr);
+  const obj = { sender: localIdentity, text, ts: Date.now() };
+  arr.push(obj); saveMessages(arr); renderMessages(arr);
   inputMsg.value = '';
   // forward via datachannel
   if(dc && dc.readyState === 'open'){
-    try { dc.send(JSON.stringify({ type:'chat', text, sender: localIdentity })); }
-    catch(e){ console.warn('dc send error', e); }
+    try{ dc.send(JSON.stringify({ type:'chat', sender: localIdentity, text })); }catch(e){ console.warn('dc send', e); }
   }
 }
 
-/* handle incoming peer chat */
-function handleIncomingPeerChat(obj){
-  if(!obj || !obj.text) return;
-  const arr = loadMessages();
-  const msg = { sender: obj.sender || 'studyAdda', text: obj.text, ts: Date.now() };
-  arr.push(msg);
-  saveMessages(arr);
-  renderMessages(arr);
+/* ---------------- typing indicator: send typing events via dc ---------------- */
+inputMsg.addEventListener('input', ()=> {
+  if(!isTyping){
+    isTyping = true;
+    broadcastTyping(true);
+  }
+  clearTimeout(typingTimer);
+  typingTimer = setTimeout(()=> {
+    isTyping = false;
+    broadcastTyping(false);
+  }, TYPING_DEBOUNCE);
+});
+
+function broadcastTyping(flag){
+  // show local user's typing state locally? (we mostly show remote typing to user)
+  if(dc && dc.readyState === 'open'){
+    try{ dc.send(JSON.stringify({ type:'typing', sender: localIdentity, typing: !!flag })); }catch(e){}
+  }
 }
 
-/* clear chat now */
-clearChatBtn.addEventListener('click', ()=>{
+/* show remote typing state */
+let remoteTypingTimeout = null;
+function showRemoteTyping(name, flag){
+  if(flag){
+    typingIndicator.style.display = 'block';
+    typingIndicator.textContent = name + ' is typing...';
+    if(remoteTypingTimeout) clearTimeout(remoteTypingTimeout);
+    remoteTypingTimeout = setTimeout(()=> { typingIndicator.style.display = 'none'; }, TYPING_DEBOUNCE + 500);
+  } else {
+    typingIndicator.style.display = 'none';
+    if(remoteTypingTimeout) { clearTimeout(remoteTypingTimeout); remoteTypingTimeout = null; }
+  }
+}
+
+/* ---------------- clear chat button ---------------- */
+clearChat.addEventListener('click', ()=> {
   if(!confirm('Clear chat messages for this session?')) return;
   clearMessages();
 });
 
-/* ---------------- Room & Signaling ---------------- */
+/* ---------------- Room & signaling ---------------- */
 joinBtn.addEventListener('click', ()=> {
   if(!unlocked){ alert('Unlock first'); return; }
-  const room = (roomInput.value||'room1').trim();
+  const room = (roomInput.value || 'room1').trim();
   if(!room){ alert('Enter a room name'); return; }
   joinRoom(room);
 });
-leaveBtn.addEventListener('click', leaveRoom);
+leaveBtn.addEventListener('click', ()=> leaveRoom());
 
 function joinRoom(room){
   currentRoom = room;
   if(!ws || ws.readyState !== WebSocket.OPEN) connectWebSocket();
-  const trySend = setInterval(()=>{
+  const trySend = setInterval(()=> {
     if(ws && ws.readyState === WebSocket.OPEN){
       clearInterval(trySend);
       ws.send(JSON.stringify({ type:'join', room }));
-      connStatus.textContent = 'Joined room: ' + room;
-      connStatus.style.color = '#8fe';
-      leaveBtn.style.display = 'inline-block';
-      joinBtn.style.display = 'none';
+      connStatus.textContent = 'Joined room: ' + room; connStatus.style.color = '#8fe';
+      leaveBtn.classList.remove('hidden'); joinBtn.classList.add('hidden');
     }
   }, 200);
 }
 function leaveRoom(){
-  if(ws && ws.readyState === WebSocket.OPEN && currentRoom){
-    ws.send(JSON.stringify({ type:'leave', room: currentRoom }));
-  }
+  if(ws && ws.readyState === WebSocket.OPEN && currentRoom) ws.send(JSON.stringify({ type:'leave', room: currentRoom }));
   cleanupPeer();
-  currentRoom = null;
-  connStatus.textContent = 'Left room';
-  connStatus.style.color = 'var(--muted)';
-  leaveBtn.style.display = 'none';
-  joinBtn.style.display = 'inline-block';
+  currentRoom = null; connStatus.textContent = 'Left room'; connStatus.style.color = 'var(--muted)';
+  leaveBtn.classList.add('hidden'); joinBtn.classList.remove('hidden');
 }
+
 function connectWebSocket(){
   if(!SIGNALING_SERVER || SIGNALING_SERVER.includes('REPLACE_WITH_YOUR_SERVER_HOST')){
-    connStatus.textContent = 'No signaling server configured';
-    connStatus.style.color = 'orange';
-    return;
+    connStatus.textContent = 'No signaling server configured'; connStatus.style.color = 'orange'; return;
   }
-  try {
-    ws = new WebSocket(SIGNALING_SERVER);
-  } catch(e){
-    connStatus.textContent = 'WebSocket error';
-    connStatus.style.color = 'red';
-    console.error(e);
-    return;
-  }
+  try{ ws = new WebSocket(SIGNALING_SERVER); } catch(e){ connStatus.textContent = 'WebSocket error'; connStatus.style.color='red'; console.error(e); return; }
   connStatus.textContent = 'Connecting to signaling...';
-  ws.onopen = () => { connStatus.textContent = 'Connected to signaling'; connStatus.style.color = '#8fe'; if(currentRoom) ws.send(JSON.stringify({ type:'join', room: currentRoom })); };
-  ws.onmessage = (ev) => {
-    try {
+  ws.onopen = ()=> { connStatus.textContent = 'Connected to signaling'; connStatus.style.color = '#8fe'; if(currentRoom) ws.send(JSON.stringify({ type:'join', room: currentRoom })); };
+  ws.onmessage = (ev)=> {
+    try{
       const msg = JSON.parse(ev.data);
       if(msg.type === 'peer-ready'){
-        // server indicates another peer present -> start offer
         if(!pc) createPeerConnectionAndOffer();
       } else if(msg.type === 'signal'){
         handleSignalingMessage(msg.data);
       } else if(msg.type === 'joined-ack'){
-        connStatus.textContent = 'Joined room: ' + msg.room;
-        connStatus.style.color = '#8fe';
+        connStatus.textContent = 'Joined room: ' + msg.room; connStatus.style.color = '#8fe';
       } else if(msg.type === 'peer-left'){
         p2pState.textContent = 'P2P: peer left';
       }
-    } catch(e){ console.warn('ws msg parse', e); }
+    } catch(e){ console.warn('ws parse', e); }
   };
-  ws.onclose = ()=>{ connStatus.textContent = 'Signaling disconnected'; connStatus.style.color = 'orange'; };
-  ws.onerror = (e)=>{ connStatus.textContent = 'Signaling error'; connStatus.style.color = 'red'; console.error(e); };
+  ws.onclose = ()=> { connStatus.textContent = 'Signaling disconnected'; connStatus.style.color='orange'; };
+  ws.onerror = (e)=> { connStatus.textContent = 'Signaling error'; connStatus.style.color='red'; console.error(e); };
 }
 function sendSignal(data){
   if(ws && ws.readyState === WebSocket.OPEN && currentRoom){
@@ -458,76 +391,76 @@ async function createPeerConnectionAndOffer(){
   pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
   dc = pc.createDataChannel('study-chat');
   setupDataChannel(dc);
-  pc.onicecandidate = (ev) => { if(ev.candidate) sendSignal({ candidate: ev.candidate }); };
-  pc.onconnectionstatechange = () => { p2pState.textContent = 'P2P: ' + pc.connectionState; };
+  pc.onicecandidate = (ev)=> { if(ev.candidate) sendSignal({ candidate: ev.candidate }); };
+  pc.onconnectionstatechange = ()=> { p2pState.textContent = 'P2P: ' + pc.connectionState; };
   const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
   sendSignal({ sdp: pc.localDescription });
 }
-
 async function handleSignalingMessage(data){
   if(data.sdp){
     const desc = data.sdp;
-    if(desc.type === 'offer'){
-      await createPeerConnectionAsCallee(desc);
-    } else if(desc.type === 'answer'){
-      if(!pc) return;
-      await pc.setRemoteDescription(desc);
-    }
+    if(desc.type === 'offer'){ await createPeerConnectionAsCallee(desc); }
+    else if(desc.type === 'answer'){ if(!pc) return; await pc.setRemoteDescription(desc); }
   }
   if(data.candidate){
     if(pc){
-      try { await pc.addIceCandidate(data.candidate); } catch(e){ console.warn('ice add error', e); }
+      try{ await pc.addIceCandidate(data.candidate); } catch(e){ console.warn('ice error', e); }
     }
   }
 }
-
 async function createPeerConnectionAsCallee(offerDesc){
   cleanupPeer();
   pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
-  pc.ondatachannel = (ev) => { dc = ev.channel; setupDataChannel(dc); };
-  pc.onicecandidate = (ev) => { if(ev.candidate) sendSignal({ candidate: ev.candidate }); };
-  pc.onconnectionstatechange = () => { p2pState.textContent = 'P2P: ' + pc.connectionState; };
+  pc.ondatachannel = (ev)=> { dc = ev.channel; setupDataChannel(dc); };
+  pc.onicecandidate = (ev)=> { if(ev.candidate) sendSignal({ candidate: ev.candidate }); };
+  pc.onconnectionstatechange = ()=> { p2pState.textContent = 'P2P: ' + pc.connectionState; };
   await pc.setRemoteDescription(offerDesc);
-  const answer = await pc.createAnswer();
-  await pc.setLocalDescription(answer);
+  const answer = await pc.createAnswer(); await pc.setLocalDescription(answer);
   sendSignal({ sdp: pc.localDescription });
 }
 
+/* DataChannel handlers */
 function setupDataChannel(channel){
-  channel.onopen = () => {
-    p2pState.textContent = 'P2P: open';
-    alert('P2P channel open — you can chat now');
-  };
-  channel.onmessage = (ev) => {
-    try {
+  channel.onopen = ()=> { p2pState.textContent = 'P2P: open'; alert('P2P channel open — you can chat now'); };
+  channel.onmessage = (ev)=> {
+    try{
       const obj = JSON.parse(ev.data);
-      if(obj.type === 'chat') handleIncomingPeerChat(obj);
+      if(obj.type === 'chat'){ handleIncomingChat(obj); }
+      else if(obj.type === 'typing'){ showRemoteTyping(obj.sender || 'studyAdda', !!obj.typing); }
     } catch(e){ console.warn('dc msg parse', e); }
   };
-  channel.onclose = () => { p2pState.textContent = 'P2P: closed'; };
-  channel.onerror = (e) => console.error('dc error', e);
+  channel.onclose = ()=> { p2pState.textContent = 'P2P: closed'; };
+  channel.onerror = (e)=> console.error('dc error', e);
 }
 
+/* incoming chat from peer (display & save) */
+function handleIncomingChat(obj){
+  if(!obj) return;
+  const arr = loadMessages();
+  arr.push({ sender: obj.sender || 'studyAdda', text: obj.text, ts: Date.now() });
+  saveMessages(arr); renderMessages(arr);
+}
+
+/* cleanup */
 function cleanupPeer(){
-  if(dc){ try{ dc.close(); } catch(e){} dc = null; }
-  if(pc){ try{ pc.close(); } catch(e){} pc = null; }
+  if(dc){ try{ dc.close(); }catch(e){} dc=null; }
+  if(pc){ try{ pc.close(); }catch(e){} pc=null; }
   p2pState.textContent = 'P2P: not connected';
 }
 
-/* ---------------- Init & cleanup ---------------- */
+/* ---------------- init & unload ---------------- */
 (function init(){
-  // start with overlay visible
-  lockedOverlay.style.display = 'flex';
-  // hide pdf before unlock
-  pdfFrame.style.display = 'none';
-  // ensure overlay button focus behavior
-  openDiscussionsBtn.addEventListener('touchstart', ()=> {}); // aids mobile responsiveness
+  // keep everything guarded until unlock
+  appContainer.classList.add('hidden');
+  lockedScreen.style.display = 'flex';
+  // disable join UI until unlock
+  joinBtn.disabled = false; // join is allowed after unlock check in handler
 })();
 window.addEventListener('beforeunload', ()=> {
-  try{ sessionStorage.removeItem(STORAGE_KEY); } catch(e){}
-  if(pc) try{ pc.close(); } catch(e){}
-  if(ws) try{ ws.close(); } catch(e){}
+  try{ sessionStorage.removeItem(STORAGE_KEY); }catch(e){}
+  if(pc) try{ pc.close(); }catch(e){}
+  if(ws) try{ ws.close(); }catch(e){}
 });
 </script>
 </body>
