@@ -2,459 +2,465 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Study Vault — Encrypted Study Chat</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>StudyVault — Secure Study Chat</title>
+<meta name="description" content="Private encrypted study chat embedded in PDF.">
 <style>
-:root{
-  --bg:#071025; --muted:#9aa6bf; --accent1:#38bdf8; --accent2:#60a5fa;
-  --glass: rgba(255,255,255,0.03); --radius:12px; --safe-bottom:env(safe-area-inset-bottom,12px);
-  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
-}
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg),#041029);color:#e6eef8}
-body.locked{overflow:hidden}
-.appWrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:12px}
-.container{width:1100px;max-width:100%;border-radius:var(--radius);overflow:hidden;box-shadow:0 18px 40px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.006))}
-.header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.03)}
-.title h1{margin:0;font-size:18px}
-.title p{margin:0;color:var(--muted);font-size:13px}
-.mainGrid{display:grid;grid-template-columns:420px 1fr;gap:0;min-height:60vh}
-.leftCol{padding:12px;border-right:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg, rgba(8,16,28,0.6), rgba(4,8,16,0.55))}
-.rightCol{padding:12px;display:flex;flex-direction:column;gap:12px;background:linear-gradient(180deg, rgba(1,6,14,0.35), rgba(2,8,16,0.3))}
-.pdfWrap{position:relative;background:var(--glass);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;height:72vh;min-height:360px}
-.pdfIframe{width:100%;height:100%;border:0;background:#fff;display:block}
-.pdfFallback{padding:12px;color:var(--muted);display:flex;flex-direction:column;gap:8px}
-.pdfOverlay{position:absolute;left:12px;right:12px;bottom:calc(var(--safe-bottom) + 12px);display:flex;justify-content:center;pointer-events:none;z-index:9999}
-.btn{pointer-events:auto;position:relative;border:0;padding:12px 18px;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer;outline:none;user-select:none;transition:transform .12s,box-shadow .12s}
-.btn-primary{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#012;box-shadow:0 10px 30px rgba(56,189,248,0.12);width:100%;max-width:720px}
-.btn-primary:hover{transform:translateY(-3px)}
-.btn-ghost{background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.04);padding:10px 12px;border-radius:10px;font-weight:700}
-.smallBtn{padding:8px 10px;border-radius:8px;border:1px dashed rgba(255,255,255,0.03);background:transparent;color:var(--muted);font-weight:600}
-.panel{background:rgba(255,255,255,0.01);padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.02)}
-.chatBox{display:flex;flex-direction:column;height:66vh;min-height:360px}
-.msgs{flex:1;overflow:auto;padding:12px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));border:1px solid rgba(255,255,255,0.02);display:flex;flex-direction:column;gap:10px}
-.msg{display:block;padding:10px 12px;border-radius:12px;max-width:100%;word-break:break-word;line-height:1.35}
-.msg.you{align-self:flex-end;background:linear-gradient(90deg,#08304a,#074b66);color:#e6f7ff;border-radius:12px 12px 6px 12px;text-align:right}
-.msg.them{align-self:flex-start;background:linear-gradient(90deg,#0b2b1a,#0c3c28);color:#e7fbf0;border-radius:12px 12px 12px 6px;text-align:left}
-.msg small{display:block;margin-top:6px;font-size:12px;color:var(--muted);opacity:0.95}
-.typing{font-size:13px;color:var(--muted);padding:6px 10px}
-.composer{display:flex;gap:8px;align-items:center;margin-top:8px;padding-bottom:calc(var(--safe-bottom) + 8px)}
-.composer input{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:15px;outline:none}
-.composer button{padding:12px 14px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent2),var(--accent1));color:#012;font-weight:700}
-@media (max-width:920px){
-  .mainGrid{grid-template-columns:1fr}
-  .pdfWrap{height: calc(var(--vh,1vh) * 100 - 56px); min-height:40vh}
-  .rightCol{display:none}
-  .container{border-radius:10px}
-}
-.chatOverlay{position:fixed;left:0;right:0;bottom:0;transform:translateY(100%);transition:transform .28s cubic-bezier(.2,.9,.25,1);z-index:10010;width:100%;max-width:100%;padding:12px;background:linear-gradient(180deg,#07101a,#041021);border-top-left-radius:14px;border-top-right-radius:14px;box-shadow:0 -18px 40px rgba(0,0,0,0.6)}
-.chatOverlay.open{transform:translateY(0)}
-.chatOverlay .msgs{height:40vh;min-height:180px;border-radius:8px}
-.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(0deg,rgba(1,2,6,0.92),rgba(1,2,6,0.92));z-index:99999}
-.lockCard{width:420px;max-width:94%;background:#07111a;padding:18px;border-radius:12px;box-shadow:0 26px 60px rgba(0,0,0,0.65);border:1px solid rgba(255,255,255,0.03)}
-.pwRow{display:flex;gap:8px;margin-top:12px}
-.pwRow input{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:16px}
-.pwRow button{padding:12px 14px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent2),var(--accent1));color:#012;font-weight:700}
-.hidden{display:none!important}
+  :root{
+    --bg:#0f1724;
+    --card:#0b1220;
+    --accent:#6ee7b7;
+    --muted:#94a3b8;
+    --glass: rgba(255,255,255,0.03);
+    --glass-2: rgba(255,255,255,0.02);
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#071029 0%, #091025 100%);color:#e6eef8;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+  .wrap{display:flex;flex-direction:column;height:100vh;gap:8px;padding:12px;}
+  /* Lock overlay */
+  .lock-overlay{position:fixed;inset:0;background:linear-gradient(180deg, rgba(2,6,23,0.95), rgba(2,8,27,0.98));z-index:1000;display:flex;align-items:center;justify-content:center}
+  .lock-card{width:min(520px,96vw);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:16px;padding:22px;box-shadow:0 8px 30px rgba(2,6,23,0.7);backdrop-filter: blur(6px);border:1px solid rgba(255,255,255,0.03);}
+  .brand{display:flex;gap:12px;align-items:center;margin-bottom:6px;}
+  .logo{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#60a5fa);display:flex;align-items:center;justify-content:center;font-weight:700;color:#022;box-shadow:0 6px 20px rgba(0,0,0,0.4)}
+  h1{font-size:18px;margin:0}
+  p.lead{color:var(--muted);margin:6px 0 14px;font-size:13px}
+  .pass-row{display:flex;gap:10px;align-items:center}
+  input.pass{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:16px}
+  button.unlock{padding:10px 16px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--accent),#60a5fa);color:#001;font-weight:700;cursor:pointer;box-shadow:0 10px 25px rgba(96,165,250,0.08);transition:transform .12s ease}
+  button.unlock:active{transform:translateY(2px) scale(.995)}
+  .hint{font-size:12px;color:var(--muted);margin-top:10px}
+  /* Main layout */
+  .content{display:flex;flex:1;gap:12px;align-items:stretch}
+  .left{flex:1;display:flex;flex-direction:column;gap:8px}
+  .pdfwrap{background:var(--glass-2);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.02);display:flex;flex-direction:column;height:100%;}
+  .pdftop{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent)}
+  .pdftitle{font-weight:600}
+  .embedarea{flex:1;background:#000;min-height:320px;display:flex}
+  .embedarea embed, .embedarea iframe, .embedarea object{width:100%;height:100%}
+  .open-disc-btn{display:block;width:100%;padding:14px;border:none;border-top:1px solid rgba(255,255,255,0.02);background:linear-gradient(90deg,#0f1724, #081224);color:var(--accent);font-weight:700;cursor:pointer;transition:transform .12s, background .2s}
+  .open-disc-btn:active{transform:translateY(1px)}
+  /* Chat column */
+  .right{width:420px;max-width:45%;min-width:300px;display:flex;flex-direction:column;gap:8px}
+  .chat-card{flex:1;border-radius:12px;padding:12px;background:linear-gradient(180deg, rgba(255,255,255,0.012), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.02);display:flex;flex-direction:column;gap:8px}
+  .topbar{display:flex;align-items:center;justify-content:space-between}
+  .you-label{font-weight:700}
+  .msgs{flex:1;overflow:auto;padding:8px;display:flex;flex-direction:column;gap:8px}
+  .msg.me{align-self:flex-end;background:linear-gradient(90deg,var(--accent),#60a5fa);color:#022;padding:10px 12px;border-radius:12px;max-width:80%}
+  .msg.them{align-self:flex-start;background:var(--glass);padding:10px 12px;border-radius:12px;max-width:80%;color:var(--muted)}
+  .meta{font-size:11px;color:var(--muted);margin-top:6px}
+  .typing{font-size:13px;color:var(--muted);height:18px}
+  .composer{display:flex;gap:8px;align-items:center;padding-top:6px}
+  textarea.input{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);min-height:44px;resize:none;background:transparent;color:inherit}
+  button.send{padding:10px 14px;border-radius:10px;border:none;background:linear-gradient(90deg,#60a5fa,var(--accent));color:#022;font-weight:700;cursor:pointer}
+  button.back{padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted);cursor:pointer}
+  /* Mobile */
+  @media (max-width:900px){
+    .content{flex-direction:column}
+    .right{width:100%;max-width:100%;min-width:unset}
+    .chat-card{height:48vh;order:2}
+    .pdfwrap{height:calc(52vh - 24px)}
+  }
+  /* small animations */
+  .pulse{animation:pulse 1.8s infinite}
+  @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.02)}100%{transform:scale(1)}}
 </style>
 </head>
-<body class="locked">
-<div class="appWrap">
-  <div class="container hidden" id="appContainer" aria-hidden="true">
-    <div class="header">
-      <div class="title">
-        <h1>Study Vault — Economics</h1>
-        <p>Private & encrypted study chat — unlock to continue</p>
-      </div>
-      <div id="connState" style="color:var(--muted)">Signaling: disconnected</div>
-    </div>
+<body>
+<div class="wrap">
 
-    <div class="mainGrid">
-      <div class="leftCol">
-        <div class="pdfWrap" id="pdfWrap" aria-live="polite">
-          <iframe id="pdfFrame" class="pdfIframe" title="Document preview" aria-label="Document preview"></iframe>
-
-          <div id="pdfFallback" class="pdfFallback hidden">
-            <div><strong>PDF preview unavailable in this browser.</strong></div>
-            <div style="color:var(--muted)">Open the PDF in a new tab:</div>
-            <a href="Economics-SQP.pdf" target="_blank" rel="noopener" style="color:var(--accent1)">Open Economics-SQP.pdf</a>
-          </div>
-
-          <div class="pdfOverlay" aria-hidden="true">
-            <button id="openDiscussionsBtn" class="btn btn-primary">Open discussions</button>
-          </div>
-        </div>
-
-        <div style="margin-top:10px;color:var(--muted)">Page passcode required</div>
-      </div>
-
-      <div class="rightCol" id="desktopChat">
-        <div class="panel" style="display:flex;justify-content:space-between;align-items:center">
-          <div><strong>Connection</strong><div style="color:var(--muted);font-size:13px;margin-top:6px">Encrypted E2EE — Cloudflare Worker relays encrypted blobs only</div></div>
-          <div id="p2pState" style="color:var(--muted)">P2P: idle</div>
-        </div>
-
-        <div class="panel chatBox" id="desktopChatBox">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div><strong>Discussion</strong></div>
-            <div style="display:flex;gap:8px;align-items:center">
-              <button id="backDesktopBtn" class="btn-ghost">Back to the page</button>
-              <div style="font-size:12px;color:var(--muted)">Session only — messages vanish on back</div>
-            </div>
-          </div>
-
-          <div id="msgs" class="msgs" role="log" aria-live="polite"></div>
-          <div id="typing" class="typing" style="display:none"></div>
-
-          <div class="composer" id="desktopComposer">
-            <input id="input" type="text" placeholder="Type a message..." autocomplete="off" />
-            <button id="send" class="btn btn-primary">Send</button>
-          </div>
-
-          <div class="panel" style="margin-top:8px">
-            <div style="color:var(--muted);font-size:13px">Auto-joined to room: <strong>room1</strong></div>
-          </div>
+  <!-- LOCK OVERLAY (hidden after unlock) -->
+  <div id="lock" class="lock-overlay" aria-hidden="false">
+    <div class="lock-card">
+      <div class="brand">
+        <div class="logo">SV</div>
+        <div>
+          <h1>StudyVault — Secure Study Page</h1>
+          <p class="lead">This page is locked. Enter passcode to view the document and open discussions.</p>
         </div>
       </div>
-    </div>
 
-    <footer style="padding:12px;border-top:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;font-size:12px;color:var(--muted)">
-      <div>End-to-end encrypted with AES-GCM. Messages vanish when you go back.</div>
-      <div>Document preview uses your uploaded file.</div>
-    </footer>
-  </div>
-</div>
-
-<!-- mobile bottom sheet -->
-<div id="chatOverlay" class="chatOverlay" aria-hidden="true">
-  <div class="inner">
-    <div class="panel" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <div><strong>Discussion — studyAdda</strong></div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <button id="backOverlayBtn" class="btn-ghost">Back to the page</button>
-        <button id="overlayClose" class="smallBtn">Close</button>
+      <div>
+        <div class="pass-row">
+          <input id="passInput" class="pass" type="password" placeholder="Enter passcode (e.g. 2511)" />
+          <button id="unlockBtn" class="unlock">Unlock</button>
+        </div>
+        <div class="hint">Passcode 2511 → view as <strong>You</strong>. Passcode 2809 → view as <strong>studyAdda</strong>.</div>
       </div>
-    </div>
-
-    <div id="overlayMsgs" class="msgs panel" role="log" aria-live="polite"></div>
-    <div id="overlayTyping" class="typing hidden"></div>
-
-    <div class="composer" style="margin-top:8px">
-      <input id="overlayInput" type="text" placeholder="Type a message..." autocomplete="off" />
-      <button id="overlaySend" class="btn btn-primary">Send</button>
     </div>
   </div>
-</div>
 
-<!-- passcode -->
-<div class="overlay" id="overlay">
-  <div class="lockCard" role="dialog" aria-modal="true" aria-labelledby="lockTitle">
-    <h2 id="lockTitle">Enter passcode</h2>
-    <div style="color:var(--muted);margin-top:6px">Enter 4-digit passcode to unlock the page.</div>
-    <div class="pwRow" style="margin-top:12px">
-      <input id="pass" type="password" placeholder="Passcode" inputmode="numeric" />
-      <button id="unlockBtn" class="btn btn-primary">Unlock</button>
+  <!-- Main content (hidden behind lock until unlocked) -->
+  <div id="main" style="display:none" class="content" aria-hidden="true">
+
+    <!-- Left: PDF viewer -->
+    <div class="left">
+      <div class="pdfwrap">
+        <div class="pdftop">
+          <div class="pdftitle">Economics — Study Paper (embedded)</div>
+          <div style="color:var(--muted);font-size:13px">Preview</div>
+        </div>
+        <div class="embedarea" id="pdfContainer">
+          <!-- PDF embed; ensure Economics-SQP.pdf is in same folder -->
+          <embed id="pdfEmbed" src="Economics-SQP.pdf" type="application/pdf">
+            <!-- fallback -->
+            <iframe id="pdfIframe" src="Economics-SQP.pdf" style="border:none"></iframe>
+        </div>
+        <button id="openDiscussionsBtn" class="open-disc-btn">Open Discussions</button>
+      </div>
     </div>
-    <div style="margin-top:12px;color:var(--muted);font-size:13px">After unlocking the document will load. Tap "Open discussions" inside the document to open chat.</div>
+
+    <!-- Right: Chat -->
+    <div class="right">
+      <div class="chat-card" id="chatCard" style="display:none">
+        <div class="topbar">
+          <div>
+            <div class="you-label" id="labelName">studyAdda</div>
+            <div class="meta" id="statusMeta">Encrypted chat — messages vanish when you go back</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button id="backBtn" class="back">Back to the page</button>
+          </div>
+        </div>
+
+        <div class="msgs" id="messages"></div>
+        <div class="typing" id="typingIndicator"></div>
+
+        <div class="composer">
+          <textarea id="inputBox" class="input" placeholder="Type a message..." rows="2"></textarea>
+          <button id="sendBtn" class="send">Send</button>
+        </div>
+
+      </div>
+      <!-- small hint card when chat closed -->
+      <div id="chatHint" style="display:flex;align-items:center;gap:8px;flex-direction:column;justify-content:center;border-radius:12px;padding:12px;background:var(--glass);border:1px solid rgba(255,255,255,0.02);min-height:120px">
+        <div style="font-weight:600">Discussions are private & encrypted</div>
+        <div style="color:var(--muted);font-size:13px">Open the discussions after reading the document to chat with each other.</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
 <script>
-/* ================= CONFIG ================= */
-const SIGNALING_SERVER = 'wss://study-signal.bravioimporter.workers.dev'; // your worker
-const PAGE_PASS_NORMAL = '2511';
-const PAGE_PASS_STUDYADDA = '2809';
-const CHAT_PASSPHRASE = '2511'; // auto baked-in passphrase for E2EE
-const STORAGE_KEY = 'e2ee_study_vault_msgs_v1';
-const ROOM = 'room1'; // fixed room
+/* ------------------------
+   Config — change only if needed
+   ------------------------ */
+const SIGNALING_SERVER = 'wss://study-signal.bravioimporter.workers.dev/'; // your worker wss
+const NOTIFY_URL = 'https://study-signal.bravioimporter.workers.dev/notify';
+const NOTIFY_SECRET_CLIENT = 'studyvault2511'; // must match NOTIFY_SECRET in worker
+// Encryption secret (both people must use same value)
+const CHAT_SECRET = 'studyvault-chat-secret-2025'; // change if you want; must match on both ends
+const ROOM = 'room1';
 
-/* ================= DOM ================= */
-const overlay = document.getElementById('overlay');
-const passInput = document.getElementById('pass');
+/* ------------------------
+   UI references
+   ------------------------ */
+const lock = document.getElementById('lock');
+const main = document.getElementById('main');
+const passInput = document.getElementById('passInput');
 const unlockBtn = document.getElementById('unlockBtn');
-
-const appContainer = document.getElementById('appContainer');
-const pdfFrame = document.getElementById('pdfFrame');
-const pdfFallback = document.getElementById('pdfFallback');
 const openDiscussionsBtn = document.getElementById('openDiscussionsBtn');
+const chatCard = document.getElementById('chatCard');
+const chatHint = document.getElementById('chatHint');
+const messagesDiv = document.getElementById('messages');
+const labelName = document.getElementById('labelName');
+const typingIndicator = document.getElementById('typingIndicator');
+const inputBox = document.getElementById('inputBox');
+const sendBtn = document.getElementById('sendBtn');
+const backBtn = document.getElementById('backBtn');
 
-const desktopMsgs = document.getElementById('msgs');
-const desktopTyping = document.getElementById('typing');
-const desktopInput = document.getElementById('input');
-const desktopSend = document.getElementById('send');
-
-const chatOverlay = document.getElementById('chatOverlay');
-const overlayMsgs = document.getElementById('overlayMsgs');
-const overlayTyping = document.getElementById('overlayTyping');
-const overlayInput = document.getElementById('overlayInput');
-const overlaySend = document.getElementById('overlaySend');
-const overlayClose = document.getElementById('overlayClose');
-
-const backDesktopBtn = document.getElementById('backDesktopBtn');
-const backOverlayBtn = document.getElementById('backOverlayBtn');
-const connState = document.getElementById('connState');
-
-/* ================= state ================= */
-let localName = 'You';
+/* ------------------------
+   App state
+   ------------------------ */
 let unlocked = false;
-let ws = null;
+let localName = 'studyAdda'; // default (before unlocking)
 let cryptoKey = null;
-let typingTimer = null, remoteTypingTimer = null;
-const TYPING_DEBOUNCE = 800;
+let ws = null;
+let typingTO = null;
 
-/* ================= utilities ================= */
-function buf2b64(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); }
-function b642buf(b64){ const s = atob(b64); const arr = new Uint8Array(s.length); for(let i=0;i<s.length;i++) arr[i]=s.charCodeAt(i); return arr.buffer; }
-function utf8Encode(s){ return new TextEncoder().encode(s); }
-function utf8Decode(buf){ return new TextDecoder().decode(buf); }
+/* ------------------------
+   Utilities: base64 <-> ArrayBuffer
+   ------------------------ */
+function bufToBase64(buf) {
+  const arr = Array.from(new Uint8Array(buf));
+  const binary = arr.map(b => String.fromCharCode(b)).join('');
+  return btoa(binary);
+}
+function base64ToBuf(b64) {
+  const binary = atob(b64);
+  const len = binary.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes.buffer;
+}
 
-/* derive AES-GCM key from the passphrase (PBKDF2) */
-async function deriveKeyFromPassphrase(passphrase){
-  const salt = utf8Encode('study-vault-salt'); // fixed salt
-  const pwKey = await crypto.subtle.importKey('raw', utf8Encode(passphrase), {name:'PBKDF2'}, false, ['deriveKey']);
+/* ------------------------
+   Encryption helpers
+   AES-GCM via Web Crypto; derive key from CHAT_SECRET (PBKDF2)
+   ------------------------ */
+async function deriveKeyFromSecret(secret) {
+  const salt = new TextEncoder().encode('studyvault-salt-2025'); // fixed salt (both must use same)
+  const enc = new TextEncoder().encode(secret);
+  const baseKey = await crypto.subtle.importKey('raw', enc, { name: 'PBKDF2' }, false, ['deriveKey']);
   const key = await crypto.subtle.deriveKey({
     name: 'PBKDF2',
     salt,
     iterations: 150000,
     hash: 'SHA-256'
-  }, pwKey, { name: 'AES-GCM', length: 256 }, false, ['encrypt','decrypt']);
+  }, baseKey, { name: 'AES-GCM', length: 256 }, false, ['encrypt','decrypt']);
   return key;
 }
 
-/* full-payload encrypt: obj -> { cipher:b64, iv:b64 } */
-async function encryptPayload(obj){
-  const plain = utf8Encode(JSON.stringify(obj));
+async function encryptMessage(plain) {
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  const ct = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, cryptoKey, plain);
-  return { cipher: buf2b64(ct), iv: buf2b64(iv.buffer) };
+  const enc = new TextEncoder().encode(plain);
+  const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, cryptoKey, enc);
+  return { iv: bufToBase64(iv.buffer), payload: bufToBase64(cipher) };
 }
 
-/* decrypt full payload */
-async function decryptPayload(cipherB64, ivB64){
-  try{
-    const ct = b642buf(cipherB64);
-    const iv = b642buf(ivB64);
-    const plainBuf = await crypto.subtle.decrypt({ name:'AES-GCM', iv:new Uint8Array(iv) }, cryptoKey, ct);
-    const txt = utf8Decode(plainBuf);
-    return JSON.parse(txt);
-  }catch(e){
-    console.warn('decrypt failed', e);
+async function decryptMessage(ivB64, payloadB64) {
+  try {
+    const iv = base64ToBuf(ivB64);
+    const data = base64ToBuf(payloadB64);
+    const plainBuf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: new Uint8Array(iv) }, cryptoKey, data);
+    return new TextDecoder().decode(plainBuf);
+  } catch (e) {
+    // failed to decrypt
     return null;
   }
 }
 
-/* ================= message storage/render ================= */
-const sample = [
-  {sender:'studyAdda', text:'Hey — I read the paper, looks useful for our revision.', ts: Date.now()-1000*60*20},
-  {sender:'You', text:"Yes — check section 3 about fiscal policy examples.", ts: Date.now()-1000*60*18}
-];
-
-function loadMessages(){
-  const raw = sessionStorage.getItem(STORAGE_KEY);
-  if(!raw){ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sample)); return sample.slice(); }
-  try{ const arr = JSON.parse(raw); return Array.isArray(arr)?arr:[];}catch(e){ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sample)); return sample.slice(); }
+/* ------------------------
+   UI helpers
+   ------------------------ */
+function appendMessage(text, whoIs) {
+  const el = document.createElement('div');
+  el.className = whoIs === 'me' ? 'msg me' : 'msg them';
+  el.textContent = text;
+  messagesDiv.appendChild(el);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  // Save to session (so reload within same tab keeps messages), but messages should vanish when leaving
+  const list = Array.from(messagesDiv.querySelectorAll('.msg')).map(m => ({text:m.textContent, cls:m.className}));
+  sessionStorage.setItem('sv_msgs', JSON.stringify(list));
 }
-function saveMessages(a){ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(a)); }
-function clearMessages(){ sessionStorage.removeItem(STORAGE_KEY); desktopMsgs.innerHTML=''; overlayMsgs.innerHTML=''; }
 
-function renderAll(){
-  const arr = loadMessages();
-  desktopMsgs.innerHTML=''; overlayMsgs.innerHTML='';
-  for(const m of arr){
-    const el = document.createElement('div');
-    el.className = 'msg ' + ((m.sender===localName)?'you':'them');
-    el.innerHTML = '<div>' + escapeHtml(m.text) + '</div><small>' + escapeHtml(m.sender) + ' • ' + new Date(m.ts).toLocaleTimeString() + '</small>';
-    desktopMsgs.appendChild(el);
-    overlayMsgs.appendChild(el.cloneNode(true));
+function loadSessionMessages() {
+  const raw = sessionStorage.getItem('sv_msgs');
+  if (!raw) return;
+  try {
+    const arr = JSON.parse(raw);
+    messagesDiv.innerHTML = '';
+    arr.forEach(it => {
+      const el = document.createElement('div');
+      el.className = it.cls;
+      el.textContent = it.text;
+      messagesDiv.appendChild(el);
+    });
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  } catch(e){}
+}
+
+/* ------------------------
+   Notify worker so you get Telegram ping when she joins as "You"
+   ------------------------ */
+async function notifyServerIfSheIsYou() {
+  try {
+    if (localName === 'You') {
+      // silent fire-and-forget
+      await fetch(NOTIFY_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-notify-secret': NOTIFY_SECRET_CLIENT
+        },
+        body: JSON.stringify({
+          secret: NOTIFY_SECRET_CLIENT,
+          who: 'You',
+          room: ROOM,
+          ts: Date.now()
+        })
+      }).catch(()=>{});
+    }
+  } catch(e) {
+    // ignore
   }
-  desktopMsgs.scrollTop = desktopMsgs.scrollHeight;
-  overlayMsgs.scrollTop = overlayMsgs.scrollHeight;
 }
-function addLocalPlain(text){
-  const arr = loadMessages();
-  arr.push({ sender: localName, text, ts: Date.now() });
-  saveMessages(arr); renderAll();
-}
-function addRemotePlain(sender,text){
-  const arr = loadMessages();
-  arr.push({ sender: sender||'studyAdda', text, ts: Date.now() });
-  saveMessages(arr); renderAll();
-}
-function escapeHtml(s){ return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
 
-/* ================= UI helpers ================= */
-function setVh(){ const vh = window.innerHeight * 0.01; document.documentElement.style.setProperty('--vh', `${vh}px`); if(window.innerWidth <= 920){ const headerH = 56; const target = window.innerHeight - headerH; document.querySelector('.pdfWrap').style.height=(target-20)+'px'; } }
-window.addEventListener('resize', setVh); window.addEventListener('orientationchange', ()=> setTimeout(setVh,250)); setVh();
+/* ------------------------
+   Signaling: connect on demand
+   ------------------------ */
+async function connectSignaling() {
+  if (ws && ws.readyState === WebSocket.OPEN) return;
+  try {
+    // build the WS url (no query)
+    ws = new WebSocket(SIGNALING_SERVER);
+    ws.addEventListener('open', () => {
+      console.log('Signaling: connected');
+    });
+    ws.addEventListener('message', async (e) => {
+      // try parse JSON
+      try {
+        const data = JSON.parse(e.data);
+        if (data.type === 'typing') {
+          typingIndicator.textContent = data.from === localName ? '' : (data.from + ' is typing...');
+          // clear after 2s
+          if (typingTO) clearTimeout(typingTO);
+          typingTO = setTimeout(()=>{ typingIndicator.textContent = ''; }, 2000);
+          return;
+        }
+        if (data.type === 'enc') {
+          const dec = await decryptMessage(data.iv, data.payload);
+          if (dec !== null) {
+            const who = data.name === localName ? 'me' : 'them';
+            appendMessage(dec, who === 'me' ? 'me' : 'them');
+          } else {
+            // couldn't decrypt — ignore
+          }
+        }
+      } catch (err) {
+        // ignore
+      }
+    });
+    ws.addEventListener('close', () => {
+      console.log('Signaling: closed');
+    });
+    ws.addEventListener('error', (err) => {
+      console.warn('Signaling error', err);
+    });
+  } catch (e) {
+    console.warn('connect failed', e);
+  }
+}
 
-/* ================= Unlock and derive key ================= */
+/* ------------------------
+   Send message (encrypt then send)
+   ------------------------ */
+async function sendMessagePlain(text) {
+  if (!cryptoKey) return;
+  const {iv, payload} = await encryptMessage(text);
+  // show local instantly
+  appendMessage(text, 'me');
+  // send JSON over ws
+  const obj = { type:'enc', payload, iv, name: localName };
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify(obj));
+  }
+}
+
+/* ------------------------
+   Send typing event
+   ------------------------ */
+function sendTyping() {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  const obj = { type:'typing', from: localName };
+  try { ws.send(JSON.stringify(obj)); } catch(e){}
+}
+
+/* ------------------------
+   UI actions
+   ------------------------ */
 unlockBtn.addEventListener('click', doUnlock);
-passInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') doUnlock(); });
+passInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') doUnlock(); });
 
 async function doUnlock(){
   const v = passInput.value.trim();
-  if(!v) return alert('Enter passcode');
-  if(v === PAGE_PASS_NORMAL) localName = 'You';
-  else if(v === PAGE_PASS_STUDYADDA) localName = 'studyAdda';
-  else return alert('Incorrect passcode.');
-  unlocked = true;
-  overlay.style.display='none';
-  appContainer.classList.remove('hidden');
-  appContainer.setAttribute('aria-hidden','false');
-  document.body.classList.remove('locked');
-  // load PDF
-  pdfFrame.src = 'Economics-SQP.pdf#view=FitH';
-  let loaded=false;
-  pdfFrame.addEventListener('load', ()=>{ pdfFallback.classList.add('hidden'); loaded=true; }, { once:true });
-  setTimeout(()=>{ if(!loaded){ pdfFallback.classList.remove('hidden'); pdfFrame.style.display='none'; } },900);
-  // derive crypto key from CHAT_PASSPHRASE (auto)
-  try{
-    cryptoKey = await deriveKeyFromPassphrase(CHAT_PASSPHRASE);
-  }catch(e){
-    console.error('derive key err', e);
-    alert('Crypto not available in this browser.');
-  }
-  renderAll();
-  // auto connect and join room
-  connectAndJoin();
-}
-
-/* ================= WebSocket / signaling (encrypted payloads) ================= */
-function connectAndJoin(){
-  if(ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
-  try{ ws = new WebSocket(SIGNALING_SERVER); }catch(e){ console.error('ws open error', e); connState.textContent='Signaling: failed'; return; }
-  ws.onopen = async ()=> {
-    connState.textContent='Signaling: connected';
-    // send encrypted join message
-    if(cryptoKey){
-      const joinMsg = { type:'join', room: ROOM, sender: localName, ts: Date.now() };
-      const enc = await encryptPayload(joinMsg);
-      ws.send(JSON.stringify({ type:'enc', payload: enc.cipher, iv: enc.iv }));
-    } else {
-      // fallback
-      ws.send(JSON.stringify({ type:'enc', payload:'', iv:'' }));
-    }
-  };
-  ws.onmessage = async (ev)=> {
-    try{
-      const obj = JSON.parse(ev.data);
-      // We expect worker to broadcast exactly what we sent; encrypted messages are JSON like {type:'enc',payload,iv}
-      if(obj && obj.type === 'enc' && obj.payload && obj.iv){
-        const dec = await decryptPayload(obj.payload, obj.iv);
-        if(!dec) return;
-        // handle decrypted full-payload
-        handleDecryptedMessage(dec);
-      }
-    }catch(e){ console.warn('ws parse', e); }
-  };
-  ws.onclose = ()=> { connState.textContent='Signaling: disconnected'; };
-  ws.onerror = (e)=> { console.error('ws err', e); connState.textContent='Signaling: error'; };
-}
-
-/* handle decrypted message object (full payload) */
-function handleDecryptedMessage(msg){
-  if(!msg || !msg.type) return;
-  if(msg.type === 'chat'){
-    addRemotePlain(msg.sender, msg.text);
-  } else if(msg.type === 'typing'){
-    showRemoteTyping(msg.sender, msg.typing);
-  } else if(msg.type === 'join'){
-    // optionally show a system message
-    addRemotePlain('system', `${msg.sender} joined`);
-  } else if(msg.type === 'leave'){
-    addRemotePlain('system', `${msg.sender} left`);
-  }
-}
-
-/* ================= sending messages (encrypt full payload) ================= */
-desktopSend.addEventListener('click', sendDesktopMessage);
-desktopInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ sendDesktopMessage(); e.preventDefault(); } });
-
-overlaySend.addEventListener('click', sendOverlayMessage);
-overlayInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ sendOverlayMessage(); e.preventDefault(); } });
-
-async function sendDesktopMessage(){
-  const txt = desktopInput.value.trim(); if(!txt) return;
-  // local append plaintext to UI
-  addLocalPlain(txt);
-  desktopInput.value='';
-  // create full payload and encrypt
-  if(!ws || ws.readyState !== WebSocket.OPEN || !cryptoKey) return;
-  const payload = { type:'chat', room: ROOM, sender: localName, text: txt, ts: Date.now() };
-  try{
-    const enc = await encryptPayload(payload);
-    ws.send(JSON.stringify({ type:'enc', payload: enc.cipher, iv: enc.iv }));
-  }catch(e){ console.error('send encrypt err', e); }
-}
-async function sendOverlayMessage(){
-  const txt = overlayInput.value.trim(); if(!txt) return;
-  addLocalPlain(txt);
-  overlayInput.value='';
-  if(!ws || ws.readyState !== WebSocket.OPEN || !cryptoKey) return;
-  const payload = { type:'chat', room: ROOM, sender: localName, text: txt, ts: Date.now() };
-  try{
-    const enc = await encryptPayload(payload);
-    ws.send(JSON.stringify({ type:'enc', payload: enc.cipher, iv: enc.iv }));
-  }catch(e){ console.error('send encrypt err', e); }
-}
-
-/* ================= typing indicator (encrypted) ================= */
-async function sendTypingFlag(flag){
-  if(!ws || ws.readyState !== WebSocket.OPEN || !cryptoKey) return;
-  const payload = { type:'typing', room: ROOM, sender: localName, typing: !!flag, ts: Date.now() };
-  try{
-    const enc = await encryptPayload(payload);
-    ws.send(JSON.stringify({ type:'enc', payload: enc.cipher, iv: enc.iv }));
-  }catch(e){ console.warn('typing send err', e); }
-}
-desktopInput.addEventListener('input', ()=>{
-  sendTypingFlag(true);
-  clearTimeout(typingTimer);
-  typingTimer = setTimeout(()=> sendTypingFlag(false), TYPING_DEBOUNCE);
-});
-overlayInput.addEventListener('input', ()=>{
-  sendTypingFlag(true);
-  clearTimeout(typingTimer);
-  typingTimer = setTimeout(()=> sendTypingFlag(false), TYPING_DEBOUNCE);
-});
-function showRemoteTyping(name, flag){
-  if(flag){
-    desktopTyping.style.display='block'; desktopTyping.textContent = name + ' is typing...';
-    overlayTyping.classList.remove('hidden'); overlayTyping.textContent = name + ' is typing...';
-    if(remoteTypingTimer) clearTimeout(remoteTypingTimer);
-    remoteTypingTimer = setTimeout(()=> { desktopTyping.style.display='none'; overlayTyping.classList.add('hidden'); }, TYPING_DEBOUNCE+300);
+  if(!v) return;
+  // map passcodes
+  if (v === '2511') {
+    localName = 'You'; // she uses this
+  } else if (v === '2809') {
+    localName = 'studyAdda'; // you
   } else {
-    desktopTyping.style.display='none'; overlayTyping.classList.add('hidden');
-    if(remoteTypingTimer){ clearTimeout(remoteTypingTimer); remoteTypingTimer=null; }
+    alert('Wrong passcode');
+    passInput.value = '';
+    return;
   }
+
+  // derive encryption key
+  cryptoKey = await deriveKeyFromSecret(CHAT_SECRET);
+
+  // show main UI
+  labelName.textContent = localName;
+  lock.style.display = 'none';
+  main.style.display = 'flex';
+  unlocked = true;
+
+  // notify server if she joined as You
+  notifyServerIfSheIsYou();
+
+  // set status
+  chatHint.style.display = 'flex';
+  chatCard.style.display = 'none';
+
+  // load any session messages (in-memory, vanish on reload/leave)
+  loadSessionMessages();
 }
 
-/* ================= back to page (clear chat) ================= */
-function backToPage(){
-  clearMessages();
-  if(chatOverlay.classList.contains('open')){ chatOverlay.classList.remove('open'); setTimeout(()=> chatOverlay.style.display='none',300); }
-  if(pdfFrame){ pdfFrame.scrollIntoView({behavior:'smooth', block:'center'}); try{ pdfFrame.contentWindow && pdfFrame.contentWindow.focus(); }catch(e){} }
-  // close websocket and reset
-  if(ws){ try{ const leaveMsg = { type:'leave', room:ROOM, sender: localName, ts: Date.now() }; encryptPayload(leaveMsg).then(enc=> { try{ ws.send(JSON.stringify({ type:'enc', payload:enc.cipher, iv:enc.iv })); }catch(e){} }).catch(()=>{}); ws.close(); ws=null; }catch(e){} }
-  desktopInput.blur(); overlayInput.blur();
-}
-backDesktopBtn.addEventListener('click', backToPage);
-backOverlayBtn.addEventListener('click', backToPage);
-
-/* ================= open discussions ================= */
-openDiscussionsBtn.addEventListener('click', ()=> {
-  if(!unlocked) return alert('Unlock first');
-  if(window.innerWidth <= 920){ chatOverlay.classList.add('open'); chatOverlay.style.display='block'; overlayMsgs.scrollTop = overlayMsgs.scrollHeight; overlayInput.focus(); } else { document.getElementById('desktopChatBox').scrollIntoView({behavior:'smooth'}); desktopInput.focus(); }
+/* Open discussions button */
+openDiscussionsBtn.addEventListener('click', async () => {
+  if (!unlocked) { alert('Please unlock the page first'); return; }
+  // show chat UI
+  chatCard.style.display = 'flex';
+  chatHint.style.display = 'none';
+  // connect to signaling
+  await connectSignaling();
 });
 
-/* ================= init ================= */
-(function init(){
-  appContainer.classList.add('hidden');
-  overlay.style.display = 'flex';
-  document.body.classList.add('locked');
-  chatOverlay.style.display='none';
-})();
-window.addEventListener('beforeunload', ()=> { try{ sessionStorage.removeItem(STORAGE_KEY); }catch(e){} if(ws) try{ ws.close(); }catch(e){} });
+/* Send message */
+sendBtn.addEventListener('click', async () => {
+  const txt = inputBox.value.trim();
+  if(!txt) return;
+  await sendMessagePlain(txt);
+  inputBox.value = '';
+});
 
+/* typing */
+let typingTimer = null;
+inputBox.addEventListener('input', () => {
+  sendTyping();
+});
+
+/* Back to page button (clears messages) */
+backBtn.addEventListener('click', () => {
+  // clear messages and session storage
+  messagesDiv.innerHTML = '';
+  sessionStorage.removeItem('sv_msgs');
+  // hide chat and show hint
+  chatCard.style.display = 'none';
+  chatHint.style.display = 'flex';
+  // scroll pdf to top (if embed supports)
+  try {
+    const pdfFrame = document.getElementById('pdfIframe');
+    if(pdfFrame && pdfFrame.contentWindow) pdfFrame.contentWindow.scrollTo(0,0);
+  } catch(e){}
+});
+
+/* Clear on unload so messages vanish */
+window.addEventListener('beforeunload', () => {
+  try { sessionStorage.removeItem('sv_msgs'); } catch(e){}
+  if(ws) try { ws.close(); } catch(e){}
+});
+
+/* Improve mobile viewport: tap Enter sends */
+inputBox.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendBtn.click();
+  }
+});
+
+/* Show PDF nicely on mobile by adjusting embed height */
+function adjustEmbed() {
+  const embed = document.getElementById('pdfEmbed');
+  if(!embed) return;
+  // nothing fancy; CSS handles responsive sizing
+}
+window.addEventListener('resize', adjustEmbed);
+adjustEmbed();
+
+/* quick console helpers */
+window.SV = {
+  debugShowState: ()=>({localName, unlocked, wsState: ws ? ws.readyState : null})
+};
 </script>
 </body>
 </html>
