@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Study Vault — Economics (Mobile fixed, final)</title>
+<title>Study Vault — Economics (Back button + clear on return)</title>
 <style>
 :root{
   --bg:#071025;
@@ -13,21 +13,21 @@
   --glass: rgba(255,255,255,0.04);
   --radius:12px;
   --safe-bottom: env(safe-area-inset-bottom, 12px);
-  --vh: 1vh; /* overwritten by JS */
+  --vh: 1vh;
   font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;background:linear-gradient(180deg,#071025,#041029);color:#e6eef8}
 body.locked{overflow:hidden}
 
-/* app container — hidden until unlocked */
+/* container */
 .appWrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:12px}
 .container{width:1100px;max-width:100%;border-radius:var(--radius);overflow:hidden;box-shadow:0 18px 40px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.008));transition:opacity .18s}
 
 /* hidden until unlocked */
 .hidden{display:none!important;opacity:0;pointer-events:none}
 
-/* header (kept but hidden on mobile when pdf fullscreen) */
+/* header */
 .header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.03)}
 .title h1{margin:0;font-size:18px}
 .title p{margin:0;color:var(--muted);font-size:13px}
@@ -70,16 +70,12 @@ body.locked{overflow:hidden}
 .composer input{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:15px;outline:none}
 .composer button{padding:12px 14px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent-2),var(--accent));color:#012;font-weight:700}
 
-/* mobile-specific adjustments: PDF fullscreen and chat as overlay bottom sheet */
+/* mobile-specific: pdf fullscreen and chat overlay bottom sheet */
 @media (max-width:920px){
   .mainGrid{grid-template-columns:1fr}
-  /* PDF should fill page height (JS corrects --vh) */
   .pdfWrap{height: calc(var(--vh,1vh) * 100 - 56px); min-height:calc(var(--vh,1vh) * 50)}
-  /* hide the right column by default (chat shown as modal) */
   .rightCol{display:none}
   .container{border-radius:10px}
-  .openBtn{font-size:16px;padding:14px}
-  .composer input{padding:14px}
 }
 
 /* bottom-sheet chat overlay on small screens */
@@ -98,7 +94,6 @@ body.locked{overflow:hidden}
   border-top-right-radius:14px;
   box-shadow:0 -18px 40px rgba(0,0,0,0.6);
 }
-/* when open */
 .chatOverlay.open{ transform:translateY(0); }
 
 /* inner chat overlay content */
@@ -114,19 +109,9 @@ body.locked{overflow:hidden}
 .pwRow{display:flex;gap:8px;margin-top:12px}
 .pwRow input{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:16px}
 .pwRow button{padding:12px 14px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent-2),var(--accent));color:#012;font-weight:700}
-
-/* remove any overlapping */
-.hidden{display:none!important}
-
-/* small screens adjustments */
-@media (max-width:420px){
-  .pdfWrap{height: calc(var(--vh,1vh) * 100 - 50px)}
-  .openBtn{font-size:15px;padding:12px;border-radius:12px}
-}
 </style>
 </head>
 <body class="locked">
-<!-- full app container (hidden until unlocked) -->
 <div class="appWrap">
   <div class="container hidden" id="appContainer" aria-hidden="true">
     <div class="header" id="headerBar">
@@ -169,7 +154,8 @@ body.locked{overflow:hidden}
           <div style="display:flex;justify-content:space-between;align-items:center">
             <div><strong>Discussion</strong></div>
             <div style="display:flex;gap:8px;align-items:center">
-              <button id="clearBtn" class="smallBtn">Clear</button>
+              <!-- Back to the page button (desktop) -->
+              <button id="backDesktopBtn" class="smallBtn" title="Back to document">Back to the page</button>
               <div style="font-size:12px;color:var(--muted)">Session only</div>
             </div>
           </div>
@@ -208,6 +194,8 @@ body.locked{overflow:hidden}
     <div class="panel" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <div><strong>Discussion — studyAdda</strong></div>
       <div style="display:flex;gap:8px;align-items:center">
+        <!-- Back to the page button (overlay) -->
+        <button id="backOverlayBtn" class="smallBtn">Back to the page</button>
         <button id="overlayClose" class="smallBtn">Close</button>
       </div>
     </div>
@@ -231,7 +219,7 @@ body.locked{overflow:hidden}
   </div>
 </div>
 
-<!-- passcode overlay (no hint text) -->
+<!-- passcode overlay -->
 <div class="overlay" id="overlay">
   <div class="lockCard" role="dialog" aria-modal="true" aria-labelledby="lockTitle">
     <h2 id="lockTitle">Enter passcode</h2>
@@ -246,10 +234,10 @@ body.locked{overflow:hidden}
 
 <script>
 /* ---------- CONFIG ---------- */
-const SIGNALING_SERVER = 'wss://study-vault-signal.onrender.com'; // your render url
+const SIGNALING_SERVER = 'wss://study-vault-signal.onrender.com';
 const PASS_NORMAL = '2511';
 const PASS_STUDYADDA = '2809';
-const STORAGE_KEY = 'study_chat_mobile_final_v3';
+const STORAGE_KEY = 'study_chat_mobile_final_v4';
 
 /* ---------- elements ---------- */
 const overlay = document.getElementById('overlay');
@@ -271,7 +259,8 @@ const desktopLeave = document.getElementById('leave');
 const desktopRoom = document.getElementById('room');
 const p2pState = document.getElementById('p2pState');
 const connStatus = document.getElementById('connStatus');
-const clearBtn = document.getElementById('clearBtn');
+
+const backDesktopBtn = document.getElementById('backDesktopBtn');
 
 const chatOverlay = document.getElementById('chatOverlay');
 const overlayMsgs = document.getElementById('overlayMsgs');
@@ -282,6 +271,7 @@ const overlayJoin = document.getElementById('overlayJoin');
 const overlayLeave = document.getElementById('overlayLeave');
 const overlayRoom = document.getElementById('overlayRoom');
 const overlayClose = document.getElementById('overlayClose');
+const backOverlayBtn = document.getElementById('backOverlayBtn');
 
 let localName = 'You';
 let unlocked = false;
@@ -289,13 +279,11 @@ let ws=null, pc=null, dc=null, currentRoom=null;
 let typingTimer=null, remoteTypingTimer=null;
 const TYPING_DEBOUNCE = 800;
 
-/* ---------- vh fix for mobile 100vh bug ---------- */
+/* ---------- vh fix ---------- */
 function setVh(){
   const vh = window.innerHeight * 0.01;
   document.documentElement.style.setProperty('--vh', `${vh}px`);
-  // also adjust pdfWrap height on small screens:
   if(window.innerWidth <= 920){
-    // subtract header ~56px so pdf is full
     const headerH = 56;
     const target = window.innerHeight - headerH;
     pdfWrap.style.height = (target - 20) + 'px';
@@ -321,7 +309,6 @@ function loadMessages(){
 function saveMessages(arr){ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
 function clearMessages(){ sessionStorage.removeItem(STORAGE_KEY); desktopMsgs.innerHTML=''; overlayMsgs.innerHTML=''; }
 
-/* render function used by both desktop and overlay */
 function renderAll(){
   const arr = loadMessages();
   desktopMsgs.innerHTML=''; overlayMsgs.innerHTML='';
@@ -330,9 +317,7 @@ function renderAll(){
     el.className = 'msg ' + ((m.sender===localName)?'you':'them');
     el.innerHTML = '<div>' + escapeHtml(m.text) + '</div><small>' + escapeHtml(m.sender) + ' • ' + new Date(m.ts).toLocaleTimeString() + '</small>';
     desktopMsgs.appendChild(el);
-    // overlay copy
-    const el2 = el.cloneNode(true);
-    overlayMsgs.appendChild(el2);
+    overlayMsgs.appendChild(el.cloneNode(true));
   }
   desktopMsgs.scrollTop = desktopMsgs.scrollHeight;
   overlayMsgs.scrollTop = overlayMsgs.scrollHeight;
@@ -349,7 +334,7 @@ function addRemote(sender,text){
 }
 function escapeHtml(s){ return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
 
-/* ---------- unlock flow ---------- */
+/* ---------- unlock ---------- */
 unlockBtn.addEventListener('click', doUnlock);
 passInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') doUnlock(); });
 
@@ -364,32 +349,28 @@ function doUnlock(){
   appContainer.classList.remove('hidden');
   appContainer.setAttribute('aria-hidden','false');
   document.body.classList.remove('locked');
-  // load PDF now
   pdfFrame.src = 'Economics-SQP.pdf#view=FitH';
   let loaded = false;
   pdfFrame.addEventListener('load', ()=>{ pdfFallback.classList.add('hidden'); loaded=true; }, { once:true });
   setTimeout(()=>{ if(!loaded){ pdfFallback.classList.remove('hidden'); pdfFrame.style.display='none'; } }, 900);
   renderAll();
-  setTimeout(()=> { /* focus overlay input not automatically to avoid keyboard clash */ }, 300);
 }
 
-/* ---------- open discussions button behavior ---------- */
+/* ---------- open discussions ---------- */
 openDiscussionsBtn.addEventListener('click', ()=> {
   if(!unlocked) return alert('Unlock first');
   if(window.innerWidth <= 920){
-    // open bottom-sheet chat overlay
     chatOverlay.classList.add('open');
-    chatOverlay.style.display = 'block';
+    chatOverlay.style.display='block';
     overlayMsgs.scrollTop = overlayMsgs.scrollHeight;
     overlayInput.focus();
   } else {
-    // on desktop, scroll to chat (simple)
     document.getElementById('desktopChatBox').scrollIntoView({behavior:'smooth'});
     desktopInput.focus();
   }
 });
 
-/* ---------- desktop sending ---------- */
+/* ---------- send (desktop) ---------- */
 desktopSend.addEventListener('click', ()=> {
   const t = desktopInput.value.trim(); if(!t) return;
   addLocal(t); desktopInput.value='';
@@ -397,7 +378,7 @@ desktopSend.addEventListener('click', ()=> {
 });
 desktopInput.addEventListener('keydown', (e)=> { if(e.key==='Enter'){ desktopSend.click(); e.preventDefault(); } });
 
-/* ---------- overlay (mobile) sending ---------- */
+/* ---------- send (overlay) ---------- */
 overlaySend.addEventListener('click', ()=> {
   const t = overlayInput.value.trim(); if(!t) return;
   addLocal(t); overlayInput.value='';
@@ -406,23 +387,21 @@ overlaySend.addEventListener('click', ()=> {
 overlayInput.addEventListener('keydown', (e)=> { if(e.key==='Enter'){ overlaySend.click(); e.preventDefault(); } });
 overlayClose.addEventListener('click', ()=> { chatOverlay.classList.remove('open'); setTimeout(()=> chatOverlay.style.display='none',300); });
 
-/* ---------- typing indicator ---------- */
-function sendTypingOverDC(flag){
+/* ---------- typing ---------- */
+function sendTyping(flag){
   if(dc && dc.readyState==='open'){ try{ dc.send(JSON.stringify({ type:'typing', sender: localName, typing: !!flag })); }catch(e){} }
 }
-// desktop input
 desktopInput.addEventListener('input', ()=> {
-  if(!dc || dc.readyState !== 'open') return;
-  sendTypingOverDC(true);
+  if(!dc || dc.readyState!=='open') return;
+  sendTyping(true);
   clearTimeout(typingTimer);
-  typingTimer = setTimeout(()=> sendTypingOverDC(false), TYPING_DEBOUNCE);
+  typingTimer = setTimeout(()=> sendTyping(false), TYPING_DEBOUNCE);
 });
-// overlay input
 overlayInput.addEventListener('input', ()=> {
-  if(!dc || dc.readyState !== 'open') return;
-  sendTypingOverDC(true);
+  if(!dc || dc.readyState!=='open') return;
+  sendTyping(true);
   clearTimeout(typingTimer);
-  typingTimer = setTimeout(()=> sendTypingOverDC(false), TYPING_DEBOUNCE);
+  typingTimer = setTimeout(()=> sendTyping(false), TYPING_DEBOUNCE);
 });
 function showRemoteTyping(name, flag){
   if(flag){
@@ -436,18 +415,35 @@ function showRemoteTyping(name, flag){
   }
 }
 
-/* ---------- clear messages ---------- */
-clearBtn.addEventListener('click', ()=> { if(!confirm('Clear session messages?')) return; clearMessages(); });
+/* ---------- Back to page functionality (clears chat) ---------- */
+function backToPage(){
+  // clear messages from UI and storage
+  clearMessages();
+  // hide overlay chat if open
+  if(chatOverlay.classList.contains('open')){
+    chatOverlay.classList.remove('open');
+    setTimeout(()=> chatOverlay.style.display='none', 300);
+  }
+  // scroll back to PDF and focus it (desktop)
+  if(pdfFrame){
+    pdfFrame.scrollIntoView({behavior:'smooth', block:'center'});
+    try{ pdfFrame.contentWindow && pdfFrame.contentWindow.focus(); }catch(e){}
+  }
+  // Also collapse/restore desktop chat focus (we simply focus pdf)
+  desktopInput.blur();
+  overlayInput.blur();
+}
+backDesktopBtn.addEventListener('click', backToPage);
+backOverlayBtn.addEventListener('click', backToPage);
 
-/* ---------- signaling + WebRTC ---------- */
-desktopJoin.addEventListener('click', ()=> { if(!unlocked) return alert('Unlock first'); joinRoom(desktopRoom.value.trim()); });
+/* ---------- overlay join/leave handling ---------- */
+desktopJoin.addEventListener('click', ()=> { if(!unlocked) return alert('Unlock first'); const r = desktopRoom.value.trim(); if(!r) return alert('Enter a room'); joinRoom(r); });
 desktopLeave.addEventListener('click', ()=> leaveRoom());
-overlayJoin.addEventListener('click', ()=> { if(!unlocked) return alert('Unlock first'); joinRoom(overlayRoom.value.trim()); overlayJoin.classList.add('hidden'); overlayLeave.classList.remove('hidden'); });
+overlayJoin.addEventListener('click', ()=> { if(!unlocked) return alert('Unlock first'); const r = overlayRoom.value.trim(); if(!r) return alert('Enter a room'); joinRoom(r); overlayJoin.classList.add('hidden'); overlayLeave.classList.remove('hidden'); });
 overlayLeave.addEventListener('click', ()=> leaveRoom());
 
-function joinRoom(r){
-  if(!r) return alert('Enter a room name');
-  currentRoom = r;
+function joinRoom(room){
+  currentRoom = room;
   if(!ws || ws.readyState !== WebSocket.OPEN) connectWS();
   const waiter = setInterval(()=>{ if(ws && ws.readyState===WebSocket.OPEN){ clearInterval(waiter); ws.send(JSON.stringify({ type:'join', room: currentRoom })); connStatus.textContent='Joined room: '+currentRoom; connStatus.style.color='#8fe'; desktopJoin.classList.add('hidden'); desktopLeave.classList.remove('hidden'); } },200);
 }
@@ -458,6 +454,7 @@ function leaveRoom(){
   overlayLeave.classList.add('hidden'); overlayJoin.classList.remove('hidden');
 }
 
+/* ---------- signaling & WebRTC ---------- */
 function connectWS(){
   if(!SIGNALING_SERVER || SIGNALING_SERVER.includes('REPLACE_WITH_YOUR_SERVER_HOST')){ connStatus.textContent='No signaling server configured'; connStatus.style.color='orange'; return; }
   try{ ws = new WebSocket(SIGNALING_SERVER); }catch(e){ connStatus.textContent='WebSocket error'; connStatus.style.color='red'; console.error(e); return; }
@@ -520,14 +517,13 @@ function cleanup(){ cleanupPeer(); if(ws){ try{ ws.close(); }catch(e){} ws=null;
 
 /* ---------- init ---------- */
 (function init(){
-  // app hidden until unlock; overlay displayed
   appContainer.classList.add('hidden');
   overlay.style.display = 'flex';
   document.body.classList.add('locked');
-  // make sure chat overlay hidden
   chatOverlay.style.display = 'none';
 })();
 window.addEventListener('beforeunload', ()=> { try{ sessionStorage.removeItem(STORAGE_KEY); }catch(e){} cleanup(); });
+
 </script>
 </body>
 </html>
