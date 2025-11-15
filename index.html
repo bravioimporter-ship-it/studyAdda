@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>StudyVault — Secure Study Chat</title>
+<meta name="description" content="Private encrypted study chat embedded in PDF.">
+<style>
+  :root{
+    --bg:#0f1724;
+    --card:#0b1220;
+    --accent:#6ee7b7;
+    --muted:#94a3b8;
+    --glass: rgba(255,255,255,0.03);
+    --glass-2: rgba(255,255,255,0.02);
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#071029 0%, #091025 100%);color:#e6eef8;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+  .wrap{display:flex;flex-direction:column;height:100vh;gap:8px;padding:12px;}
+  /* Lock overlay */
+  .lock-overlay{position:fixed;inset:0;background:linear-gradient(180deg, rgba(2,6,23,0.95), rgba(2,8,27,0.98));z-index:1000;display:flex;align-items:center;justify-content:center}
+  .lock-card{width:min(520px,96vw);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:16px;padding:22px;box-shadow:0 8px 30px rgba(2,6,23,0.7);backdrop-filter: blur(6px);border:1px solid rgba(255,255,255,0.03);}
+  .brand{display:flex;gap:12px;align-items:center;margin-bottom:6px;}
+  .logo{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#60a5fa);display:flex;align-items:center;justify-content:center;font-weight:700;color:#022;box-shadow:0 6px 20px rgba(0,0,0,0.4)}
+  h1{font-size:18px;margin:0}
+  p.lead{color:var(--muted);margin:6px 0 14px;font-size:13px}
+  .pass-row{display:flex;gap:10px;align-items:center}
+  input.pass{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:16px}
+  button.unlock{padding:10px 16px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--accent),#60a5fa);color:#001;font-weight:700;cursor:pointer;box-shadow:0 10px 25px rgba(96,165,250,0.08);transition:transform .12s ease}
+  button.unlock:active{transform:translateY(2px) scale(.995)}
+  .hint{font-size:12px;color:var(--muted);margin-top:10px}
+  /* Main layout */
+  .content{display:flex;flex:1;gap:12px;align-items:stretch}
+  .left{flex:1;display:flex;flex-direction:column;gap:8px}
+  .pdfwrap{background:var(--glass-2);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.02);display:flex;flex-direction:column;height:100%;}
+  .pdftop{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent)}
+  .pdftitle{font-weight:600}
+  .embedarea{flex:1;background:#000;min-height:320px;display:flex}
+  .embedarea embed, .embedarea iframe, .embedarea object{width:100%;height:100%}
+  .open-disc-btn{display:block;width:100%;padding:14px;border:none;border-top:1px solid rgba(255,255,255,0.02);background:linear-gradient(90deg,#0f1724, #081224);color:var(--accent);font-weight:700;cursor:pointer;transition:transform .12s, background .2s}
+  .open-disc-btn:active{transform:translateY(1px)}
+  /* Chat column */
+  .right{width:420px;max-width:45%;min-width:300px;display:flex;flex-direction:column;gap:8px}
+  .chat-card{flex:1;border-radius:12px;padding:12px;background:linear-gradient(180deg, rgba(255,255,255,0.012), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.02);display:flex;flex-direction:column;gap:8px}
+  .topbar{display:flex;align-items:center;justify-content:space-between}
+  .you-label{font-weight:700}
+  .msgs{flex:1;overflow:auto;padding:8px;display:flex;flex-direction:column;gap:8px}
+  .msg.me{align-self:flex-end;background:linear-gradient(90deg,var(--accent),#60a5fa);color:#022;padding:10px 12px;border-radius:12px;max-width:80%}
+  .msg.them{align-self:flex-start;background:var(--glass);padding:10px 12px;border-radius:12px;max-width:80%;color:var(--muted)}
+  .meta{font-size:11px;color:var(--muted);margin-top:6px}
+  .typing{font-size:13px;color:var(--muted);height:18px}
+  .composer{display:flex;gap:8px;align-items:center;padding-top:6px}
+  textarea.input{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);min-height:44px;resize:none;background:transparent;color:inherit}
+  button.send{padding:10px 14px;border-radius:10px;border:none;background:linear-gradient(90deg,#60a5fa,var(--accent));color:#022;font-weight:700;cursor:pointer}
+  button.back{padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted);cursor:pointer}
+  /* Mobile */
+  @media (max-width:900px){
+    .content{flex-direction:column}
+    .right{width:100%;max-width:100%;min-width:unset}
+    .chat-card{height:48vh;order:2}
+    .pdfwrap{height:calc(52vh - 24px)}
+  }
+  /* small animations */
+  .pulse{animation:pulse 1.8s infinite}
+  @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.02)}100%{transform:scale(1)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- LOCK OVERLAY (hidden after unlock) -->
+  <div id="lock" class="lock-overlay" aria-hidden="false">
+    <div class="lock-card">
+      <div class="brand">
+        <div class="logo">SV</div>
+        <div>
+          <h1>StudyVault — Secure Study Page</h1>
+          <p class="lead">This page is locked. Enter passcode to view the document and open discussions.</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="pass-row">
+          <input id="passInput" class="pass" type="password" placeholder="Enter passcode (e.g. 2511)" />
+          <button id="unlockBtn" class="unlock">Unlock</button>
+        </div>
+        <div class="hint">Passcode 2511 → view as <strong>You</strong>. Passcode 2809 → view as <strong>studyAdda</strong>.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content (hidden behind lock until unlocked) -->
+  <div id="main" style="display:none" class="content" aria-hidden="true">
+
+    <!-- Left: PDF viewer -->
+    <div class="left">
+      <div class="pdfwrap">
+        <div class="pdftop">
+          <div class="pdftitle">Economics — Study Paper (embedded)</div>
+          <div style="color:var(--muted);font-size:13px">Preview</div>
+        </div>
+        <div class="embedarea" id="pdfContainer">
+          <!-- PDF embed; ensure Economics-SQP.pdf is in same folder -->
+          <embed id="pdfEmbed" src="Economics-SQP.pdf" type="application/pdf">
+            <!-- fallback -->
+            <iframe id="pdfIframe" src="Economics-SQP.pdf" style="border:none"></iframe>
+        </div>
+        <button id="openDiscussionsBtn" class="open-disc-btn">Open Discussions</button>
+      </div>
+    </div>
+
+    <!-- Right: Chat -->
+    <div class="right">
+      <div class="chat-card" id="chatCard" style="display:none">
+        <div class="topbar">
+          <div>
+            <div class="you-label" id="labelName">studyAdda</div>
+            <div class="meta" id="statusMeta">Encrypted chat — messages vanish when you go back</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button id="backBtn" class="back">Back to the page</button>
+          </div>
+        </div>
+
+        <div class="msgs" id="messages"></div>
+        <div class="typing" id="typingIndicator"></div>
+
+        <div class="composer">
+          <textarea id="inputBox" class="input" placeholder="Type a message..." rows="2"></textarea>
+          <button id="sendBtn" class="send">Send</button>
+        </div>
+
+      </div>
+      <!-- small hint card when chat closed -->
+      <div id="chatHint" style="display:flex;align-items:center;gap:8px;flex-direction:column;justify-content:center;border-radius:12px;padding:12px;background:var(--glass);border:1px solid rgba(255,255,255,0.02);min-height:120px">
+        <div style="font-weight:600">Discussions are private & encrypted</div>
+        <div style="color:var(--muted);font-size:13px">Open the discussions after reading the document to chat with each other.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ------------------------
+   Config — change only if needed
+   ------------------------ */
+const SIGNALING_SERVER = 'wss://study-signal.bravioimporter.workers.dev/'; // your worker wss
+const NOTIFY_URL = 'https://study-signal.bravioimporter.workers.dev/notify';
+const NOTIFY_SECRET_CLIENT = 'studyvault2511'; // must match NOTIFY_SECRET in worker
+// Encryption secret (both people must use same value)
+const CHAT_SECRET = 'studyvault-chat-secret-2025'; // change if you want; must match on both ends
+const ROOM = 'room1';
+
+/* ------------------------
+   UI references
+   ------------------------ */
+const lock = document.getElementById('lock');
+const main = document.getElementById('main');
+const passInput = document.getElementById('passInput');
+const unlockBtn = document.getElementById('unlockBtn');
+const openDiscussionsBtn = document.getElementById('openDiscussionsBtn');
+const chatCard = document.getElementById('chatCard');
+const chatHint = document.getElementById('chatHint');
+const messagesDiv = document.getElementById('messages');
+const labelName = document.getElementById('labelName');
+const typingIndicator = document.getElementById('typingIndicator');
+const inputBox = document.getElementById('inputBox');
+const sendBtn = document.getElementById('sendBtn');
+const backBtn = document.getElementById('backBtn');
+
+/* ------------------------
+   App state
+   ------------------------ */
+let unlocked = false;
+let localName = 'studyAdda'; // default (before unlocking)
+let cryptoKey = null;
+let ws = null;
+let typingTO = null;
+
+/* ------------------------
+   Utilities: base64 <-> ArrayBuffer
+   ------------------------ */
+function bufToBase64(buf) {
+  const arr = Array.from(new Uint8Array(buf));
+  const binary = arr.map(b => String.fromCharCode(b)).join('');
+  return btoa(binary);
+}
+function base64ToBuf(b64) {
+  const binary = atob(b64);
+  const len = binary.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes.buffer;
+}
+
+/* ------------------------
+   Encryption helpers
+   AES-GCM via Web Crypto; derive key from CHAT_SECRET (PBKDF2)
+   ------------------------ */
+async function deriveKeyFromSecret(secret) {
+  const salt = new TextEncoder().encode('studyvault-salt-2025'); // fixed salt (both must use same)
+  const enc = new TextEncoder().encode(secret);
+  const baseKey = await crypto.subtle.importKey('raw', enc, { name: 'PBKDF2' }, false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey({
+    name: 'PBKDF2',
+    salt,
+    iterations: 150000,
+    hash: 'SHA-256'
+  }, baseKey, { name: 'AES-GCM', length: 256 }, false, ['encrypt','decrypt']);
+  return key;
+}
+
+async function encryptMessage(plain) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const enc = new TextEncoder().encode(plain);
+  const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, cryptoKey, enc);
+  return { iv: bufToBase64(iv.buffer), payload: bufToBase64(cipher) };
+}
+
+async function decryptMessage(ivB64, payloadB64) {
+  try {
+    const iv = base64ToBuf(ivB64);
+    const data = base64ToBuf(payloadB64);
+    const plainBuf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: new Uint8Array(iv) }, cryptoKey, data);
+    return new TextDecoder().decode(plainBuf);
+  } catch (e) {
+    // failed to decrypt
+    return null;
+  }
+}
+
+/* ------------------------
+   UI helpers
+   ------------------------ */
+function appendMessage(text, whoIs) {
+  const el = document.createElement('div');
+  el.className = whoIs === 'me' ? 'msg me' : 'msg them';
+  el.textContent = text;
+  messagesDiv.appendChild(el);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  // Save to session (so reload within same tab keeps messages), but messages should vanish when leaving
+  const list = Array.from(messagesDiv.querySelectorAll('.msg')).map(m => ({text:m.textContent, cls:m.className}));
+  sessionStorage.setItem('sv_msgs', JSON.stringify(list));
+}
+
+function loadSessionMessages() {
+  const raw = sessionStorage.getItem('sv_msgs');
+  if (!raw) return;
+  try {
+    const arr = JSON.parse(raw);
+    messagesDiv.innerHTML = '';
+    arr.forEach(it => {
+      const el = document.createElement('div');
+      el.className = it.cls;
+      el.textContent = it.text;
+      messagesDiv.appendChild(el);
+    });
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  } catch(e){}
+}
+
+/* ------------------------
+   Notify worker so you get Telegram ping when she joins as "You"
+   ------------------------ */
+async function notifyServerIfSheIsYou() {
+  try {
+    if (localName === 'You') {
+      // silent fire-and-forget
+      await fetch(NOTIFY_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-notify-secret': NOTIFY_SECRET_CLIENT
+        },
+        body: JSON.stringify({
+          secret: NOTIFY_SECRET_CLIENT,
+          who: 'You',
+          room: ROOM,
+          ts: Date.now()
+        })
+      }).catch(()=>{});
+    }
+  } catch(e) {
+    // ignore
+  }
+}
+
+/* ------------------------
+   Signaling: connect on demand
+   ------------------------ */
+async function connectSignaling() {
+  if (ws && ws.readyState === WebSocket.OPEN) return;
+  try {
+    // build the WS url (no query)
+    ws = new WebSocket(SIGNALING_SERVER);
+    ws.addEventListener('open', () => {
+      console.log('Signaling: connected');
+    });
+    ws.addEventListener('message', async (e) => {
+      // try parse JSON
+      try {
+        const data = JSON.parse(e.data);
+        if (data.type === 'typing') {
+          typingIndicator.textContent = data.from === localName ? '' : (data.from + ' is typing...');
+          // clear after 2s
+          if (typingTO) clearTimeout(typingTO);
+          typingTO = setTimeout(()=>{ typingIndicator.textContent = ''; }, 2000);
+          return;
+        }
+        if (data.type === 'enc') {
+          const dec = await decryptMessage(data.iv, data.payload);
+          if (dec !== null) {
+            const who = data.name === localName ? 'me' : 'them';
+            appendMessage(dec, who === 'me' ? 'me' : 'them');
+          } else {
+            // couldn't decrypt — ignore
+          }
+        }
+      } catch (err) {
+        // ignore
+      }
+    });
+    ws.addEventListener('close', () => {
+      console.log('Signaling: closed');
+    });
+    ws.addEventListener('error', (err) => {
+      console.warn('Signaling error', err);
+    });
+  } catch (e) {
+    console.warn('connect failed', e);
+  }
+}
+
+/* ------------------------
+   Send message (encrypt then send)
+   ------------------------ */
+async function sendMessagePlain(text) {
+  if (!cryptoKey) return;
+  const {iv, payload} = await encryptMessage(text);
+  // show local instantly
+  appendMessage(text, 'me');
+  // send JSON over ws
+  const obj = { type:'enc', payload, iv, name: localName };
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify(obj));
+  }
+}
+
+/* ------------------------
+   Send typing event
+   ------------------------ */
+function sendTyping() {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  const obj = { type:'typing', from: localName };
+  try { ws.send(JSON.stringify(obj)); } catch(e){}
+}
+
+/* ------------------------
+   UI actions
+   ------------------------ */
+unlockBtn.addEventListener('click', doUnlock);
+passInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') doUnlock(); });
+
+async function doUnlock(){
+  const v = passInput.value.trim();
+  if(!v) return;
+  // map passcodes
+  if (v === '2511') {
+    localName = 'You'; // she uses this
+  } else if (v === '2809') {
+    localName = 'studyAdda'; // you
+  } else {
+    alert('Wrong passcode');
+    passInput.value = '';
+    return;
+  }
+
+  // derive encryption key
+  cryptoKey = await deriveKeyFromSecret(CHAT_SECRET);
+
+  // show main UI
+  labelName.textContent = localName;
+  lock.style.display = 'none';
+  main.style.display = 'flex';
+  unlocked = true;
+
+  // notify server if she joined as You
+  notifyServerIfSheIsYou();
+
+  // set status
+  chatHint.style.display = 'flex';
+  chatCard.style.display = 'none';
+
+  // load any session messages (in-memory, vanish on reload/leave)
+  loadSessionMessages();
+}
+
+/* Open discussions button */
+openDiscussionsBtn.addEventListener('click', async () => {
+  if (!unlocked) { alert('Please unlock the page first'); return; }
+  // show chat UI
+  chatCard.style.display = 'flex';
+  chatHint.style.display = 'none';
+  // connect to signaling
+  await connectSignaling();
+});
+
+/* Send message */
+sendBtn.addEventListener('click', async () => {
+  const txt = inputBox.value.trim();
+  if(!txt) return;
+  await sendMessagePlain(txt);
+  inputBox.value = '';
+});
+
+/* typing */
+let typingTimer = null;
+inputBox.addEventListener('input', () => {
+  sendTyping();
+});
+
+/* Back to page button (clears messages) */
+backBtn.addEventListener('click', () => {
+  // clear messages and session storage
+  messagesDiv.innerHTML = '';
+  sessionStorage.removeItem('sv_msgs');
+  // hide chat and show hint
+  chatCard.style.display = 'none';
+  chatHint.style.display = 'flex';
+  // scroll pdf to top (if embed supports)
+  try {
+    const pdfFrame = document.getElementById('pdfIframe');
+    if(pdfFrame && pdfFrame.contentWindow) pdfFrame.contentWindow.scrollTo(0,0);
+  } catch(e){}
+});
+
+/* Clear on unload so messages vanish */
+window.addEventListener('beforeunload', () => {
+  try { sessionStorage.removeItem('sv_msgs'); } catch(e){}
+  if(ws) try { ws.close(); } catch(e){}
+});
+
+/* Improve mobile viewport: tap Enter sends */
+inputBox.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendBtn.click();
+  }
+});
+
+/* Show PDF nicely on mobile by adjusting embed height */
+function adjustEmbed() {
+  const embed = document.getElementById('pdfEmbed');
+  if(!embed) return;
+  // nothing fancy; CSS handles responsive sizing
+}
+window.addEventListener('resize', adjustEmbed);
+adjustEmbed();
+
+/* quick console helpers */
+window.SV = {
+  debugShowState: ()=>({localName, unlocked, wsState: ws ? ws.readyState : null})
+};
+</script>
+</body>
+</html>
